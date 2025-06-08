@@ -99,7 +99,7 @@
 		svg.appendChild(train);
 
 		// WebSocket for position
-		const wsPosition = new WebSocket(`wss://${location.host}/ws/position`);
+		const wsPosition = new WebSocket(`wss://feeding-petition-waterproof-ethnic.trycloudflare.com/ws/checkpoint`);
 		wsPosition.onopen = () => logMessage("Position WebSocket connected.");
 		wsPosition.onmessage = event => {
 			const msg = JSON.parse(event.data);
@@ -113,7 +113,7 @@
 		wsPosition.onclose = () => logMessage("Position WebSocket closed.");
 
 		// WebSocket for checkpoint
-		const wsCheckpoint = new WebSocket(`wss://${location.host}/ws/checkpoint`);
+		const wsCheckpoint = new WebSocket(`wss://feeding-petition-waterproof-ethnic.trycloudflare.com/ws/checkpoint`);
 		wsCheckpoint.onopen = () => logMessage("Checkpoint WebSocket connected.");
 		wsCheckpoint.onmessage = event => {
 			const msg = JSON.parse(event.data);
