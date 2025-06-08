@@ -55,51 +55,23 @@
 			{ name: "Gamma", x: 100, y: 300 }
 		];
 
-		// Draw path
-		for (let i = 0; i < pathPoints.length - 1; i++) {
-			const a = pathPoints[i];
-			const b = pathPoints[i + 1];
-			const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-			line.setAttribute("x1", a.x);
-			line.setAttribute("y1", a.y);
-			line.setAttribute("x2", b.x);
-			line.setAttribute("y2", b.y);
-			line.setAttribute("stroke", "#999");
-			line.setAttribute("stroke-width", 4);
-			svg.appendChild(line);
-		}
+		const apiListUrl = 'https://script.google.com/macros/s/AKfycbzELXfSETWl3eC8D4hFBd5WUe6FkRbY_90FkZrNt7_mxzEl4RL4-SX_azeJt0NvP12z/exec';
 
-		// Draw checkpoints
-		checkpoints.forEach(cp => {
-			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-			circle.setAttribute("cx", cp.x);
-			circle.setAttribute("cy", cp.y);
-			circle.setAttribute("r", 10);
-			circle.setAttribute("fill", "#cc0");
-			circle.setAttribute("stroke", "#aa0");
-			circle.setAttribute("stroke-width", 2);
-			svg.appendChild(circle);
+		fetch(apiListUrl)
+			.then(res => res.json())
+			.then(apiArray => {
+				const api_url_list = {};
+				apiArray.forEach(api => {
+					api_url_list[api.name] = api.url;
+				});
 
-			const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-			label.setAttribute("x", cp.x + 12);
-			label.setAttribute("y", cp.y - 12);
-			label.textContent = cp.name;
-			label.setAttribute("fill", "#333");
-			label.setAttribute("font-size", "14px");
-			label.setAttribute("font-family", "sans-serif");
-			svg.appendChild(label);
-		});
+				startWebSockets(api_url_list);
+			})
+			.catch(err => logMessage('Failed to load API list: ' + err));
 
-		// Train
-		const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-		train.setAttribute("r", 12);
-		train.setAttribute("fill", "#007700");
-		train.setAttribute("stroke", "#004400");
-		train.setAttribute("stroke-width", 3);
-		svg.appendChild(train);
-
+	function startWebSockets(api_url_list) {
 		// WebSocket for position
-		const wsPosition = new WebSocket(`wss://feeding-petition-waterproof-ethnic.trycloudflare.com/ws/position`);
+		const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/position`);
 		wsPosition.onopen = () => logMessage("Position WebSocket connected.");
 		wsPosition.onmessage = event => {
 			const msg = JSON.parse(event.data);
@@ -124,25 +96,69 @@
 		};
 		wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
 		wsCheckpoint.onclose = () => logMessage("Checkpoint WebSocket closed.");
+	}
 
-		function logMessage(text) {
-			const time = new Date().toLocaleTimeString();
-			log.textContent += `[${time}] ${text}\n`;
-			log.scrollTop = log.scrollHeight;
-		}
+	// Draw path
+	for (let i = 0; i < pathPoints.length - 1; i++) {
+		const a = pathPoints[i];
+		const b = pathPoints[i + 1];
+		const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+		line.setAttribute("x1", a.x);
+		line.setAttribute("y1", a.y);
+		line.setAttribute("x2", b.x);
+		line.setAttribute("y2", b.y);
+		line.setAttribute("stroke", "#999");
+		line.setAttribute("stroke-width", 4);
+		svg.appendChild(line);
+	}
 
-		function flashCheckpoint(name) {
-			const cp = checkpoints.find(c => c.name === name);
-			if (!cp) return;
-			const circles = svg.querySelectorAll("circle");
-			circles.forEach(c => {
-				if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
-					const origFill = c.getAttribute("fill");
-					c.setAttribute("fill", "red");
-					setTimeout(() => c.setAttribute("fill", origFill), 700);
-				}
-			});
-		}
+	// Draw checkpoints
+	checkpoints.forEach(cp => {
+		const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		circle.setAttribute("cx", cp.x);
+		circle.setAttribute("cy", cp.y);
+		circle.setAttribute("r", 10);
+		circle.setAttribute("fill", "#cc0");
+		circle.setAttribute("stroke", "#aa0");
+		circle.setAttribute("stroke-width", 2);
+		svg.appendChild(circle);
+
+		const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+		label.setAttribute("x", cp.x + 12);
+		label.setAttribute("y", cp.y - 12);
+		label.textContent = cp.name;
+		label.setAttribute("fill", "#333");
+		label.setAttribute("font-size", "14px");
+		label.setAttribute("font-family", "sans-serif");
+		svg.appendChild(label);
+	});
+
+	// Train
+	const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+	train.setAttribute("r", 12);
+	train.setAttribute("fill", "#007700");
+	train.setAttribute("stroke", "#004400");
+	train.setAttribute("stroke-width", 3);
+	svg.appendChild(train);
+
+	function logMessage(text) {
+		const time = new Date().toLocaleTimeString();
+		log.textContent += `[${time}] ${text}\n`;
+		log.scrollTop = log.scrollHeight;
+	}
+
+	function flashCheckpoint(name) {
+		const cp = checkpoints.find(c => c.name === name);
+		if (!cp) return;
+		const circles = svg.querySelectorAll("circle");
+		circles.forEach(c => {
+			if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
+				const origFill = c.getAttribute("fill");
+				c.setAttribute("fill", "red");
+				setTimeout(() => c.setAttribute("fill", origFill), 700);
+			}
+		});
+	}
 	</script>
 </body>
 </html>
