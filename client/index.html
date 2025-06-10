@@ -41,48 +41,17 @@
 		const log = document.getElementById("log");
 
 		const pathPoints = [
-	// Left wing up
-	{ x: 150, y: 500 },
-	{ x: 170, y: 440 },
-	{ x: 200, y: 370 },
-	{ x: 240, y: 300 },
-	{ x: 270, y: 240 },
-
-	// Smoother apex arc
-	{ x: 285, y: 200 },
-	{ x: 295, y: 185 },
-	{ x: 305, y: 185 },
-	{ x: 315, y: 200 },
-
-	// Right wing down
-	{ x: 330, y: 240 },
-	{ x: 360, y: 300 },
-	{ x: 400, y: 370 },
-	{ x: 430, y: 440 },
-	{ x: 450, y: 500 },
-
-	// Bottom-right curve
-	{ x: 445, y: 515 },
-	{ x: 410, y: 510 },
-	{ x: 360, y: 490 },
-
-	// **Smooth return arc**
-	{ x: 340, y: 480 },
-	{ x: 325, y: 475 },
-	{ x: 315, y: 472 },
-	{ x: 305, y: 470 },
-	{ x: 295, y: 472 },
-	{ x: 285, y: 475 },
-	{ x: 270, y: 480 },
-
-	// Continue bottom-left curve
-	{ x: 240, y: 490 },
-	{ x: 190, y: 510 },
-	{ x: 155, y: 515 },
-	{ x: 150, y: 500 },
-
-	// Loop closed
-];
+			{ x: 150, y: 500 }, { x: 170, y: 440 }, { x: 200, y: 370 },
+			{ x: 240, y: 300 }, { x: 270, y: 240 }, { x: 285, y: 200 },
+			{ x: 295, y: 185 }, { x: 305, y: 185 }, { x: 315, y: 200 },
+			{ x: 330, y: 240 }, { x: 360, y: 300 }, { x: 400, y: 370 },
+			{ x: 430, y: 440 }, { x: 450, y: 500 }, { x: 445, y: 515 },
+			{ x: 410, y: 510 }, { x: 360, y: 490 }, { x: 340, y: 480 },
+			{ x: 325, y: 475 }, { x: 315, y: 472 }, { x: 305, y: 470 },
+			{ x: 295, y: 472 }, { x: 285, y: 475 }, { x: 270, y: 480 },
+			{ x: 240, y: 490 }, { x: 190, y: 510 }, { x: 155, y: 515 },
+			{ x: 150, y: 500 }
+		];
 
 		const checkpoints = [
 			{ name: "Alpha", x: 300, y: 100 },
@@ -99,101 +68,110 @@
 				apiArray.forEach(api => {
 					api_url_list[api.name] = api.url;
 				});
-
 				startWebSockets(api_url_list);
 			})
 			.catch(err => logMessage('Failed to load API list: ' + err));
 
-	function startWebSockets(api_url_list) {
-		// WebSocket for position
-		const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/position`);
-		wsPosition.onopen = () => logMessage("Position WebSocket connected.");
-		wsPosition.onmessage = event => {
-			const msg = JSON.parse(event.data);
-			if (msg.type === "position") {
-				train.setAttribute("cx", msg.x);
-				train.setAttribute("cy", msg.y);
-				speedEl.textContent = msg.speed.toFixed(1);
-			}
-		};
-		wsPosition.onerror = () => logMessage("Error with position WebSocket.");
-		wsPosition.onclose = () => logMessage("Position WebSocket closed.");
+		function startWebSockets(api_url_list) {
+			const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/position`);
+			wsPosition.onopen = () => logMessage("Position WebSocket connected.");
+			wsPosition.onmessage = event => {
+				const msg = JSON.parse(event.data);
+				if (msg.type === "position") {
+					train.setAttribute("cx", msg.x);
+					train.setAttribute("cy", msg.y);
+					speedEl.textContent = msg.speed.toFixed(1);
+				}
+			};
+			wsPosition.onerror = () => logMessage("Error with position WebSocket.");
+			wsPosition.onclose = () => logMessage("Position WebSocket closed.");
 
-		// WebSocket for checkpoint
-		const wsCheckpoint = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/checkpoint`);
-		wsCheckpoint.onopen = () => logMessage("Checkpoint WebSocket connected.");
-		wsCheckpoint.onmessage = event => {
-			const msg = JSON.parse(event.data);
-			if (msg.type === "checkpoint") {
-				logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
-				flashCheckpoint(msg.name);
-			}
-		};
-		wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
-		wsCheckpoint.onclose = () => logMessage("Checkpoint WebSocket closed.");
-	}
+			const wsCheckpoint = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/checkpoint`);
+			wsCheckpoint.onopen = () => logMessage("Checkpoint WebSocket connected.");
+			wsCheckpoint.onmessage = event => {
+				const msg = JSON.parse(event.data);
+				if (msg.type === "checkpoint") {
+					logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
+					flashCheckpoint(msg.name);
+				}
+			};
+			wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
+			wsCheckpoint.onclose = () => logMessage("Checkpoint WebSocket closed.");
+		}
 
-	// Draw path
-	for (let i = 0; i < pathPoints.length - 1; i++) {
-		const a = pathPoints[i];
-		const b = pathPoints[i + 1];
-		const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-		line.setAttribute("x1", a.x);
-		line.setAttribute("y1", a.y);
-		line.setAttribute("x2", b.x);
-		line.setAttribute("y2", b.y);
-		line.setAttribute("stroke", "#999");
-		line.setAttribute("stroke-width", 4);
-		svg.appendChild(line);
-	}
+		// Draw railroad path
+		for (let i = 0; i < pathPoints.length - 1; i++) {
+			const a = pathPoints[i];
+			const b = pathPoints[i + 1];
+			const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+			line.setAttribute("x1", a.x);
+			line.setAttribute("y1", a.y);
+			line.setAttribute("x2", b.x);
+			line.setAttribute("y2", b.y);
+			line.setAttribute("stroke", "#999");
+			line.setAttribute("stroke-width", 4);
+			svg.appendChild(line);
+		}
 
-	// Draw checkpoints
-	checkpoints.forEach(cp => {
-		const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-		circle.setAttribute("cx", cp.x);
-		circle.setAttribute("cy", cp.y);
-		circle.setAttribute("r", 10);
-		circle.setAttribute("fill", "#cc0");
-		circle.setAttribute("stroke", "#aa0");
-		circle.setAttribute("stroke-width", 2);
-		svg.appendChild(circle);
+		// Draw road cutting through railroad
+		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
+		road.setAttribute("x1", 470);
+		road.setAttribute("y1", 490);
+		road.setAttribute("x2", 130);
+		road.setAttribute("y2", 490);
+		road.setAttribute("stroke", "#222");
+		road.setAttribute("stroke-width", 10);
+		road.setAttribute("stroke-dasharray", "18,8");
+		road.setAttribute("stroke-linecap", "round");
+		svg.appendChild(road);
 
-		const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-		label.setAttribute("x", cp.x + 12);
-		label.setAttribute("y", cp.y - 12);
-		label.textContent = cp.name;
-		label.setAttribute("fill", "#333");
-		label.setAttribute("font-size", "14px");
-		label.setAttribute("font-family", "sans-serif");
-		svg.appendChild(label);
-	});
+		// Draw checkpoints
+		checkpoints.forEach(cp => {
+			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			circle.setAttribute("cx", cp.x);
+			circle.setAttribute("cy", cp.y);
+			circle.setAttribute("r", 10);
+			circle.setAttribute("fill", "#cc0");
+			circle.setAttribute("stroke", "#aa0");
+			circle.setAttribute("stroke-width", 2);
+			svg.appendChild(circle);
 
-	// Train
-	const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-	train.setAttribute("r", 12);
-	train.setAttribute("fill", "#007700");
-	train.setAttribute("stroke", "#004400");
-	train.setAttribute("stroke-width", 3);
-	svg.appendChild(train);
-
-	function logMessage(text) {
-		const time = new Date().toLocaleTimeString();
-		log.textContent += `[${time}] ${text}\n`;
-		log.scrollTop = log.scrollHeight;
-	}
-
-	function flashCheckpoint(name) {
-		const cp = checkpoints.find(c => c.name === name);
-		if (!cp) return;
-		const circles = svg.querySelectorAll("circle");
-		circles.forEach(c => {
-			if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
-				const origFill = c.getAttribute("fill");
-				c.setAttribute("fill", "red");
-				setTimeout(() => c.setAttribute("fill", origFill), 700);
-			}
+			const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+			label.setAttribute("x", cp.x + 12);
+			label.setAttribute("y", cp.y - 12);
+			label.textContent = cp.name;
+			label.setAttribute("fill", "#333");
+			label.setAttribute("font-size", "14px");
+			label.setAttribute("font-family", "sans-serif");
+			svg.appendChild(label);
 		});
-	}
+
+		// Train
+		const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		train.setAttribute("r", 12);
+		train.setAttribute("fill", "#007700");
+		train.setAttribute("stroke", "#004400");
+		train.setAttribute("stroke-width", 3);
+		svg.appendChild(train);
+
+		function logMessage(text) {
+			const time = new Date().toLocaleTimeString();
+			log.textContent += `[${time}] ${text}\n`;
+			log.scrollTop = log.scrollHeight;
+		}
+
+		function flashCheckpoint(name) {
+			const cp = checkpoints.find(c => c.name === name);
+			if (!cp) return;
+			const circles = svg.querySelectorAll("circle");
+			circles.forEach(c => {
+				if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
+					const origFill = c.getAttribute("fill");
+					c.setAttribute("fill", "red");
+					setTimeout(() => c.setAttribute("fill", origFill), 700);
+				}
+			});
+		}
 	</script>
 </body>
 </html>
