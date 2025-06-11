@@ -40,8 +40,20 @@
 		const speedEl = document.getElementById("speed");
 		const log = document.getElementById("log");
 
-		const pathPoints = [
-			{ x: 150, y: 500 }, { x: 170, y: 440 }, { x: 200, y: 370 },
+		const intersectionConfig = {
+			Alpha: {
+				intersection: "East",
+				distance: 150,
+				passDuration: 1.5
+			},
+			Beta: {
+				intersection: "West",
+				distance: 130,
+				passDuration: 1.5
+			}
+		};
+
+		const pathPoints = [/* (unchanged) */ { x: 150, y: 500 }, { x: 170, y: 440 }, { x: 200, y: 370 },
 			{ x: 240, y: 300 }, { x: 270, y: 240 }, { x: 285, y: 200 },
 			{ x: 295, y: 185 }, { x: 305, y: 185 }, { x: 315, y: 200 },
 			{ x: 330, y: 240 }, { x: 360, y: 300 }, { x: 400, y: 370 },
@@ -98,25 +110,13 @@
 					logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
 					flashCheckpoint(msg.name);
 
-					const cp = checkpoints.find(c => c.name === msg.name);
-					if (!cp || msg.speed <= 0) return;
+					if (!intersectionConfig[msg.name] || msg.speed <= 0) return;
 
-					const speed = msg.speed; // px/s
-					const passDuration = 1.5;
-
-					// Assign specific intersections
-					let inter = null;
-					if (msg.name === "Alpha") {
-						inter = intersections.find(i => i.name === "East");
-					} else if (msg.name === "Beta") {
-						inter = intersections.find(i => i.name === "West");
-					}
+					const { intersection, distance, passDuration } = intersectionConfig[msg.name];
+					const inter = intersections.find(i => i.name === intersection);
 					if (!inter) return;
 
-					const dx = cp.x - inter.x;
-					const dy = cp.y - inter.y;
-					const distance = Math.sqrt(dx * dx + dy * dy);
-					const timeToReach = distance / speed;
+					const timeToReach = distance / msg.speed;
 
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "red");
