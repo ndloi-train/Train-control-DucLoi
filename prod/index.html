@@ -85,6 +85,10 @@
 		const svg = document.getElementById("svg");
 		const speedEl = document.getElementById("speed");
 		const logGrid = document.getElementById("log-grid");
+		const logsByIntersect = {
+			East: { countdownInterval: null },
+			West: { countdownInterval: null }
+		};
 
 		const intersectionConfig = {
 			Alpha: { intersection: "East", distance: 350, passDuration: 1 },
@@ -101,11 +105,6 @@
 			{ name: "West", x: 185, y: 400, svg: null }
 		];
 
-		const logsByIntersect = {
-			East: {},
-			West: {}
-		};
-
 		function formatTime() {
 			return new Date().toLocaleTimeString();
 		}
@@ -115,13 +114,16 @@
 			["East", "West"].forEach(intName => {
 				const log = logsByIntersect[intName];
 				if (log && log.timestamp) {
+					const countdownDisplay = log.targetTime
+						? `${Math.max(0, (log.targetTime - Date.now()) / 1000).toFixed(1)}s`
+						: "-";
 					logGrid.innerHTML += `
 						<tr>
 							<td>${log.source}</td>
 							<td>${intName}</td>
 							<td>${log.speed?.toFixed(1) ?? '-'}</td>
 							<td>${log.timestamp}</td>
-							<td>${log.countdown ?? '-'}</td>
+							<td>${countdownDisplay}</td>
 							<td>${log.status}</td>
 						</tr>
 					`;
@@ -130,66 +132,73 @@
 		}
 
 		function logEvent(source, intersect, speed, countdown, status) {
-			logsByIntersect[intersect] = {
-				source,
-				speed,
-				timestamp: formatTime(),
-				countdown: countdown ? countdown.toFixed(1) + "s" : "-",
-				status
-			};
+			const log = logsByIntersect[intersect];
+			log.source = source;
+			log.speed = speed;
+			log.timestamp = formatTime();
+			log.status = status;
+
+			if (log.countdownInterval) clearInterval(log.countdownInterval);
+			log.countdownInterval = null;
+			log.targetTime = null;
+
+			if (countdown) {
+				log.targetTime = Date.now() + countdown * 1000;
+				log.countdownInterval = setInterval(() => {
+					if (Date.now() >= log.targetTime) {
+						clearInterval(log.countdownInterval);
+						log.countdownInterval = null;
+					}
+					updateTable();
+				}, 100);
+			}
 			updateTable();
 		}
 
-		const apiListUrl = 'https://script.google.com/macros/s/AKfycbzELXfSETWl3eC8D4hFBd5WUe6FkRbY_90FkZrNt7_mxzEl4RL4-SX_azeJt0NvP12z/exec';
-
-		fetch(apiListUrl)
-			.then(res => res.json())
-			.then(apiArray => {
-				const api_url_list = {};
-				apiArray.forEach(api => api_url_list[api.name] = api.url);
-				startWebSockets(api_url_list);
-			});
-
-		function startWebSockets(api_url_list) {
-			const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/position`);
-			wsPosition.onmessage = event => {
-				const msg = JSON.parse(event.data);
-				if (msg.type === "position") {
-					train.setAttribute("cx", msg.x);
-					train.setAttribute("cy", msg.y);
-					speedEl.textContent = msg.speed.toFixed(1);
+		function flashCheckpoint(name) {
+			const cp = checkpoints.find(c => c.name === name);
+			if (!cp) return;
+			svg.querySelectorAll("circle").forEach(c => {
+				if (+c.getAttribute("cx") === cp.x && +c.getAttribute("cy") === cp.y) {
+					const orig = c.getAttribute("fill");
+					c.setAttribute("fill", "red");
+					setTimeout(() => c.setAttribute("fill", orig), 700);
 				}
-			};
+			});
+		}
 
-			const wsCheckpoint = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/checkpoint`);
-			wsCheckpoint.onmessage = event => {
-				const msg = JSON.parse(event.data);
-				if (msg.type !== "checkpoint" || msg.speed <= 0) return;
+		const api_url = 'wss://your-ws-endpoint/ws/checkpoint'; // Replace as needed
+		const ws = new WebSocket(api_url);
 
-				const cfg = intersectionConfig[msg.name];
-				if (!cfg) return;
-
+		ws.onmessage = e => {
+			const msg = JSON.parse(e.data);
+			if (msg.type === "checkpoint") {
+				const { name, speed } = msg;
+				const cfg = intersectionConfig[name];
+				if (!cfg || speed <= 0) return;
 				const { intersection, distance, passDuration } = cfg;
+				const timeToReach = distance / speed;
+
 				const inter = intersections.find(i => i.name === intersection);
 				if (!inter) return;
 
-				const timeToReach = distance / msg.speed;
-				logEvent(msg.name, intersection, msg.speed, timeToReach, "Checkpoint Hit");
-				flashCheckpoint(msg.name);
+				flashCheckpoint(name);
 
 				setTimeout(() => {
 					inter.svg.setAttribute("fill", "red");
-					logEvent(msg.name, intersection, msg.speed, null, "RED");
+					logEvent(name, intersection, speed, 0, "RED");
 				}, Math.max(timeToReach - 1, 0.1) * 1000);
 
 				setTimeout(() => {
 					inter.svg.setAttribute("fill", "green");
-					logEvent(msg.name, intersection, msg.speed, null, "GREEN");
+					logEvent(name, intersection, speed, 0, "GREEN");
 				}, (timeToReach + passDuration + 0.1) * 1000);
-			};
-		}
 
-		// SVG drawing
+				logEvent(name, intersection, speed, timeToReach, "Approaching");
+			}
+		};
+
+		// Draw visuals (same as before)
 		const pathPoints = [
 			{ x: 150, y: 500 }, { x: 170, y: 440 }, { x: 200, y: 370 },
 			{ x: 240, y: 300 }, { x: 270, y: 240 }, { x: 285, y: 200 },
@@ -204,62 +213,54 @@
 		];
 
 		for (let i = 0; i < pathPoints.length - 1; i++) {
-			const a = pathPoints[i], b = pathPoints[i + 1];
+			const a = pathPoints[i];
+			const b = pathPoints[i + 1];
 			const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-			line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
-			line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+			line.setAttribute("x1", a.x);
+			line.setAttribute("y1", a.y);
+			line.setAttribute("x2", b.x);
+			line.setAttribute("y2", b.y);
 			line.setAttribute("stroke", "#444");
-			line.setAttribute("stroke-dasharray", "8");
-			line.setAttribute("stroke-linecap", "round");
 			line.setAttribute("stroke-width", 6);
+			line.setAttribute("stroke-dasharray", "8");
 			svg.appendChild(line);
 		}
 
-		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
-		road.setAttribute("x1", 470); road.setAttribute("y1", 400);
-		road.setAttribute("x2", 130); road.setAttribute("y2", 400);
-		road.setAttribute("stroke", "#aaa"); road.setAttribute("stroke-width", 4);
-		road.setAttribute("stroke-linecap", "round");
-		svg.appendChild(road);
-
 		intersections.forEach(inter => {
-			const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-			marker.setAttribute("cx", inter.x); marker.setAttribute("cy", inter.y);
-			marker.setAttribute("r", 6); marker.setAttribute("fill", "green");
-			svg.appendChild(marker);
-			inter.svg = marker;
+			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			circle.setAttribute("cx", inter.x);
+			circle.setAttribute("cy", inter.y);
+			circle.setAttribute("r", 6);
+			circle.setAttribute("fill", "green");
+			svg.appendChild(circle);
+			inter.svg = circle;
 		});
 
 		checkpoints.forEach(cp => {
 			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-			circle.setAttribute("cx", cp.x); circle.setAttribute("cy", cp.y);
-			circle.setAttribute("r", 10); circle.setAttribute("fill", "#ff9800");
-			circle.setAttribute("stroke", "#e65100"); circle.setAttribute("stroke-width", 2);
+			circle.setAttribute("cx", cp.x);
+			circle.setAttribute("cy", cp.y);
+			circle.setAttribute("r", 10);
+			circle.setAttribute("fill", "#ff9800");
+			circle.setAttribute("stroke", "#e65100");
+			circle.setAttribute("stroke-width", 2);
 			svg.appendChild(circle);
 
 			const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-			label.setAttribute("x", cp.x + 12); label.setAttribute("y", cp.y - 12);
-			label.textContent = cp.name; label.setAttribute("fill", "#333");
-			label.setAttribute("font-size", "14px"); label.setAttribute("font-family", "sans-serif");
+			label.setAttribute("x", cp.x + 12);
+			label.setAttribute("y", cp.y - 12);
+			label.textContent = cp.name;
+			label.setAttribute("fill", "#333");
+			label.setAttribute("font-size", "14px");
 			svg.appendChild(label);
 		});
 
 		const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-		train.setAttribute("r", 12); train.setAttribute("fill", "#1976d2");
-		train.setAttribute("stroke", "#0d47a1"); train.setAttribute("stroke-width", 3);
+		train.setAttribute("r", 12);
+		train.setAttribute("fill", "#1976d2");
+		train.setAttribute("stroke", "#0d47a1");
+		train.setAttribute("stroke-width", 3);
 		svg.appendChild(train);
-
-		function flashCheckpoint(name) {
-			const cp = checkpoints.find(c => c.name === name);
-			if (!cp) return;
-			svg.querySelectorAll("circle").forEach(c => {
-				if (+c.getAttribute("cx") === cp.x && +c.getAttribute("cy") === cp.y) {
-					const orig = c.getAttribute("fill");
-					c.setAttribute("fill", "red");
-					setTimeout(() => c.setAttribute("fill", orig), 700);
-				}
-			});
-		}
 	</script>
 </body>
 </html>
