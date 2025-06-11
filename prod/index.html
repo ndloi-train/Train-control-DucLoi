@@ -44,7 +44,7 @@
 		table {
 			margin: 20px auto;
 			border-collapse: collapse;
-			width: 80%;
+			width: 90%;
 			background: white;
 			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 		}
@@ -76,7 +76,13 @@
 
 	<table>
 		<thead>
-			<tr><th>Source</th><th>Event</th><th>Speed (px/s)</th><th>Timestamp</th></tr>
+			<tr>
+				<th>Source</th>
+				<th>Intersect</th>
+				<th>Speed (px/s)</th>
+				<th>Timestamp</th>
+				<th>Status (east/west event)</th>
+			</tr>
 		</thead>
 		<tbody id="log-grid"></tbody>
 	</table>
@@ -127,11 +133,22 @@
 				startWebSockets(api_url_list);
 			});
 
-		function updateLog(source, event, speed) {
+		function updateLog(source, intersection, speed, status) {
 			const time = new Date().toLocaleTimeString();
-			latestLogs[source] = { event, speed: speed.toFixed(1), time };
+			latestLogs[source] = {
+				intersection: intersection || "-",
+				speed: speed.toFixed(1),
+				time,
+				status: status || "-"
+			};
 			logGrid.innerHTML = Object.entries(latestLogs).map(([src, val]) =>
-				`<tr><td>${src}</td><td>${val.event}</td><td>${val.speed}</td><td>${val.time}</td></tr>`
+				`<tr>
+					<td>${src}</td>
+					<td>${val.intersection}</td>
+					<td>${val.speed}</td>
+					<td>${val.time}</td>
+					<td>${val.status}</td>
+				</tr>`
 			).join('');
 		}
 
@@ -150,7 +167,7 @@
 			wsCheckpoint.onmessage = event => {
 				const msg = JSON.parse(event.data);
 				if (msg.type === "checkpoint") {
-					updateLog(msg.name, "Checkpoint Hit", msg.speed);
+					updateLog(msg.name, "-", msg.speed, "checkpoint");
 					flashCheckpoint(msg.name);
 
 					if (!intersectionConfig[msg.name] || msg.speed <= 0) return;
@@ -163,12 +180,12 @@
 
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "red");
-						updateLog(inter.name, "RED", msg.speed);
+						updateLog(inter.name, intersection, msg.speed, "RED");
 					}, Math.max(timeToReach - 1, 0.1) * 1000);
 
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "green");
-						updateLog(inter.name, "GREEN", msg.speed);
+						updateLog(inter.name, intersection, msg.speed, "GREEN");
 					}, (timeToReach + passDuration + 0.1) * 1000);
 				}
 			};
