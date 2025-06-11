@@ -44,12 +44,12 @@
 			Alpha: {
 				intersection: "East",
 				distance: 250,
-				passDuration: 0.5
+				passDuration: 1
 			},
 			Beta: {
 				intersection: "West",
 				distance: 200,
-				passDuration: 0.5
+				passDuration: 1
 			}
 		};
 
@@ -121,12 +121,12 @@
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "red");
 						logMessage(`${inter.name} intersection turned RED.`);
-					}, Math.max(timeToReach - 1, 0) * 1000);
+					}, Math.max(timeToReach - 1, 0.1) * 1000);
 
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "green");
 						logMessage(`${inter.name} intersection turned GREEN.`);
-					}, (timeToReach + passDuration + 1) * 1000);
+					}, (timeToReach + passDuration + 0.1) * 1000);
 				}
 			};
 			wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
