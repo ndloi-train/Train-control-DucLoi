@@ -5,69 +5,58 @@
 	<title>FPT Train Control</title>
 	<style>
 		body {
-			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			text-align: center;
-			background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+			font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+			background: linear-gradient(to bottom right, #e3f2fd, #ffffff);
 			margin: 0;
 			padding: 0;
-			color: #333;
 		}
-
 		header {
 			background-color: #0c4da2;
 			color: white;
-			padding: 20px 0;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			padding: 20px;
+			text-align: center;
 		}
-
-		h1 {
-			margin: 0;
-			font-size: 28px;
-		}
-
 		#dashboard {
 			display: flex;
-			justify-content: space-around;
-			align-items: center;
-			flex-wrap: wrap;
-			margin: 20px auto;
-			max-width: 900px;
+			justify-content: center;
+			gap: 30px;
+			margin-top: 20px;
 		}
-
 		.card {
-			background: #fff;
-			border-radius: 12px;
-			padding: 20px;
-			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-			margin: 10px;
-			min-width: 250px;
-		}
-
-		.card h2 {
-			margin-top: 0;
-			color: #0c4da2;
-			font-size: 18px;
-		}
-
-		#svg {
 			background: white;
-			border: 1px solid #ccc;
-			margin: 20px auto;
-			display: block;
+			border-radius: 10px;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+			padding: 20px;
+			min-width: 200px;
+			text-align: center;
 		}
-
-		#log {
-			background: #f1f1f1;
+		h2 {
+			margin: 0 0 10px 0;
+			font-size: 20px;
 			color: #333;
-			padding: 10px;
-			max-height: 200px;
-			overflow-y: auto;
-			text-align: left;
-			border-radius: 8px;
-			margin: 10px auto;
-			max-width: 900px;
-			box-shadow: inset 0 0 5px #ccc;
-			font-family: monospace;
+		}
+		#svg {
+			display: block;
+			margin: 20px auto;
+			background: #fff;
+			border: 1px solid #ccc;
+		}
+		table {
+			margin: 20px auto;
+			border-collapse: collapse;
+			width: 80%;
+			background: white;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+		}
+		table, th, td {
+			border: 1px solid #ccc;
+		}
+		th, td {
+			padding: 8px 12px;
+			text-align: center;
+		}
+		th {
+			background-color: #f0f0f0;
 		}
 	</style>
 </head>
@@ -79,34 +68,28 @@
 	<div id="dashboard">
 		<div class="card">
 			<h2>Train Speed</h2>
-			<p style="font-size: 24px; font-weight: bold;"><span id="speed">0</span> px/s</p>
-		</div>
-		<div class="card">
-			<h2>System Status</h2>
-			<p id="status">Initializing...</p>
+			<p><span id="speed">0</span> px/s</p>
 		</div>
 	</div>
 
 	<svg id="svg" width="600" height="600"></svg>
-	<pre id="log"></pre>
+
+	<table>
+		<thead>
+			<tr><th>Source</th><th>Event</th><th>Speed (px/s)</th><th>Timestamp</th></tr>
+		</thead>
+		<tbody id="log-grid"></tbody>
+	</table>
 
 	<script>
 		const svg = document.getElementById("svg");
 		const speedEl = document.getElementById("speed");
-		const log = document.getElementById("log");
-		const status = document.getElementById("status");
+		const logGrid = document.getElementById("log-grid");
+		const latestLogs = {};
 
 		const intersectionConfig = {
-			Alpha: {
-				intersection: "East",
-				distance: 350,
-				passDuration: 1
-			},
-			Beta: {
-				intersection: "West",
-				distance: 350,
-				passDuration: 1
-			}
+			Alpha: { intersection: "East", distance: 350, passDuration: 1 },
+			Beta: { intersection: "West", distance: 350, passDuration: 1 }
 		};
 
 		const pathPoints = [
@@ -142,15 +125,18 @@
 					api_url_list[api.name] = api.url;
 				});
 				startWebSockets(api_url_list);
-			})
-			.catch(err => logMessage('Failed to load API list: ' + err));
+			});
+
+		function updateLog(source, event, speed) {
+			const time = new Date().toLocaleTimeString();
+			latestLogs[source] = { event, speed: speed.toFixed(1), time };
+			logGrid.innerHTML = Object.entries(latestLogs).map(([src, val]) =>
+				`<tr><td>${src}</td><td>${val.event}</td><td>${val.speed}</td><td>${val.time}</td></tr>`
+			).join('');
+		}
 
 		function startWebSockets(api_url_list) {
 			const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/position`);
-			wsPosition.onopen = () => {
-				logMessage("Position WebSocket connected.");
-				status.textContent = "Connected to train simulation.";
-			};
 			wsPosition.onmessage = event => {
 				const msg = JSON.parse(event.data);
 				if (msg.type === "position") {
@@ -159,37 +145,36 @@
 					speedEl.textContent = msg.speed.toFixed(1);
 				}
 			};
-			wsPosition.onerror = () => logMessage("Error with position WebSocket.");
-			wsPosition.onclose = () => logMessage("Position WebSocket closed.");
 
 			const wsCheckpoint = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/checkpoint`);
-			wsCheckpoint.onopen = () => logMessage("Checkpoint WebSocket connected.");
 			wsCheckpoint.onmessage = event => {
 				const msg = JSON.parse(event.data);
 				if (msg.type === "checkpoint") {
-					logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
+					updateLog(msg.name, "Checkpoint Hit", msg.speed);
 					flashCheckpoint(msg.name);
 
 					if (!intersectionConfig[msg.name] || msg.speed <= 0) return;
+
 					const { intersection, distance, passDuration } = intersectionConfig[msg.name];
 					const inter = intersections.find(i => i.name === intersection);
 					if (!inter) return;
 
 					const timeToReach = distance / msg.speed;
+
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "red");
-						logMessage(`${inter.name} intersection turned RED.`);
+						updateLog(inter.name, "RED", msg.speed);
 					}, Math.max(timeToReach - 1, 0.1) * 1000);
+
 					setTimeout(() => {
 						inter.svg.setAttribute("fill", "green");
-						logMessage(`${inter.name} intersection turned GREEN.`);
+						updateLog(inter.name, "GREEN", msg.speed);
 					}, (timeToReach + passDuration + 0.1) * 1000);
 				}
 			};
-			wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
-			wsCheckpoint.onclose = () => logMessage("Checkpoint WebSocket closed.");
 		}
 
+		// Draw railroad path
 		for (let i = 0; i < pathPoints.length - 1; i++) {
 			const a = pathPoints[i];
 			const b = pathPoints[i + 1];
@@ -198,33 +183,36 @@
 			railroad.setAttribute("y1", a.y);
 			railroad.setAttribute("x2", b.x);
 			railroad.setAttribute("y2", b.y);
-			railroad.setAttribute("stroke", "#000");
-			railroad.setAttribute("stroke-dasharray", "10");
+			railroad.setAttribute("stroke", "#444");
+			railroad.setAttribute("stroke-dasharray", "8");
 			railroad.setAttribute("stroke-linecap", "round");
-			railroad.setAttribute("stroke-width", 8);
+			railroad.setAttribute("stroke-width", 6);
 			svg.appendChild(railroad);
 		}
 
+		// Road
 		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
 		road.setAttribute("x1", 470);
 		road.setAttribute("y1", 400);
 		road.setAttribute("x2", 130);
 		road.setAttribute("y2", 400);
-		road.setAttribute("stroke", "#444");
+		road.setAttribute("stroke", "#aaa");
 		road.setAttribute("stroke-width", 4);
 		road.setAttribute("stroke-linecap", "round");
 		svg.appendChild(road);
 
+		// Intersections
 		intersections.forEach(inter => {
 			const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			marker.setAttribute("cx", inter.x);
 			marker.setAttribute("cy", inter.y);
-			marker.setAttribute("r", 5);
+			marker.setAttribute("r", 6);
 			marker.setAttribute("fill", "green");
 			svg.appendChild(marker);
 			inter.svg = marker;
 		});
 
+		// Checkpoints
 		checkpoints.forEach(cp => {
 			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			circle.setAttribute("cx", cp.x);
@@ -245,6 +233,7 @@
 			svg.appendChild(label);
 		});
 
+		// Train
 		const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 		train.setAttribute("r", 12);
 		train.setAttribute("fill", "#1976d2");
@@ -252,21 +241,15 @@
 		train.setAttribute("stroke-width", 3);
 		svg.appendChild(train);
 
-		function logMessage(text) {
-			const time = new Date().toLocaleTimeString();
-			log.textContent += `[${time}] ${text}\n`;
-			log.scrollTop = log.scrollHeight;
-		}
-
 		function flashCheckpoint(name) {
 			const cp = checkpoints.find(c => c.name === name);
 			if (!cp) return;
 			const circles = svg.querySelectorAll("circle");
 			circles.forEach(c => {
-				if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
-					const origFill = c.getAttribute("fill");
+				if (+c.getAttribute("cx") === cp.x && +c.getAttribute("cy") === cp.y) {
+					const orig = c.getAttribute("fill");
 					c.setAttribute("fill", "red");
-					setTimeout(() => c.setAttribute("fill", origFill), 700);
+					setTimeout(() => c.setAttribute("fill", orig), 700);
 				}
 			});
 		}
