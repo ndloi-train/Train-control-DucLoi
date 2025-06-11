@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>FPT Train Control</title>
+	<style>
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			text-align: center;
+			background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+			margin: 0;
+			padding: 0;
+			color: #333;
+		}
+
+		header {
+			background-color: #0c4da2;
+			color: white;
+			padding: 20px 0;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		}
+
+		h1 {
+			margin: 0;
+			font-size: 28px;
+		}
+
+		#dashboard {
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			flex-wrap: wrap;
+			margin: 20px auto;
+			max-width: 900px;
+		}
+
+		.card {
+			background: #fff;
+			border-radius: 12px;
+			padding: 20px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+			margin: 10px;
+			min-width: 250px;
+		}
+
+		.card h2 {
+			margin-top: 0;
+			color: #0c4da2;
+			font-size: 18px;
+		}
+
+		#svg {
+			background: white;
+			border: 1px solid #ccc;
+			margin: 20px auto;
+			display: block;
+		}
+
+		#log {
+			background: #f1f1f1;
+			color: #333;
+			padding: 10px;
+			max-height: 200px;
+			overflow-y: auto;
+			text-align: left;
+			border-radius: 8px;
+			margin: 10px auto;
+			max-width: 900px;
+			box-shadow: inset 0 0 5px #ccc;
+			font-family: monospace;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<h1>FPT Train Control Dashboard</h1>
+	</header>
+
+	<div id="dashboard">
+		<div class="card">
+			<h2>Train Speed</h2>
+			<p style="font-size: 24px; font-weight: bold;"><span id="speed">0</span> px/s</p>
+		</div>
+		<div class="card">
+			<h2>System Status</h2>
+			<p id="status">Initializing...</p>
+		</div>
+	</div>
+
+	<svg id="svg" width="600" height="600"></svg>
+	<pre id="log"></pre>
+
+	<script>
+		const svg = document.getElementById("svg");
+		const speedEl = document.getElementById("speed");
+		const log = document.getElementById("log");
+		const status = document.getElementById("status");
+
+		const intersectionConfig = {
+			Alpha: {
+				intersection: "East",
+				distance: 350,
+				passDuration: 1
+			},
+			Beta: {
+				intersection: "West",
+				distance: 350,
+				passDuration: 1
+			}
+		};
+
+		const pathPoints = [
+			{ x: 150, y: 500 }, { x: 170, y: 440 }, { x: 200, y: 370 },
+			{ x: 240, y: 300 }, { x: 270, y: 240 }, { x: 285, y: 200 },
+			{ x: 295, y: 185 }, { x: 305, y: 185 }, { x: 315, y: 200 },
+			{ x: 330, y: 240 }, { x: 360, y: 300 }, { x: 400, y: 370 },
+			{ x: 430, y: 440 }, { x: 450, y: 500 }, { x: 445, y: 515 },
+			{ x: 410, y: 510 }, { x: 360, y: 490 }, { x: 340, y: 480 },
+			{ x: 325, y: 475 }, { x: 315, y: 472 }, { x: 305, y: 470 },
+			{ x: 295, y: 472 }, { x: 285, y: 475 }, { x: 270, y: 480 },
+			{ x: 240, y: 490 }, { x: 190, y: 510 }, { x: 155, y: 515 },
+			{ x: 150, y: 500 }
+		];
+
+		const checkpoints = [
+			{ name: "Alpha", x: 300, y: 180 },
+			{ name: "Beta", x: 300, y: 470 }
+		];
+
+		const intersections = [
+			{ name: "East", x: 415, y: 400, svg: null },
+			{ name: "West", x: 185, y: 400, svg: null }
+		];
+
+		const apiListUrl = 'https://script.google.com/macros/s/AKfycbzELXfSETWl3eC8D4hFBd5WUe6FkRbY_90FkZrNt7_mxzEl4RL4-SX_azeJt0NvP12z/exec';
+
+		fetch(apiListUrl)
+			.then(res => res.json())
+			.then(apiArray => {
+				const api_url_list = {};
+				apiArray.forEach(api => {
+					api_url_list[api.name] = api.url;
+				});
+				startWebSockets(api_url_list);
+			})
+			.catch(err => logMessage('Failed to load API list: ' + err));
+
+		function startWebSockets(api_url_list) {
+			const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/position`);
+			wsPosition.onopen = () => {
+				logMessage("Position WebSocket connected.");
+				status.textContent = "Connected to train simulation.";
+			};
+			wsPosition.onmessage = event => {
+				const msg = JSON.parse(event.data);
+				if (msg.type === "position") {
+					train.setAttribute("cx", msg.x);
+					train.setAttribute("cy", msg.y);
+					speedEl.textContent = msg.speed.toFixed(1);
+				}
+			};
+			wsPosition.onerror = () => logMessage("Error with position WebSocket.");
+			wsPosition.onclose = () => logMessage("Position WebSocket closed.");
+
+			const wsCheckpoint = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/checkpoint`);
+			wsCheckpoint.onopen = () => logMessage("Checkpoint WebSocket connected.");
+			wsCheckpoint.onmessage = event => {
+				const msg = JSON.parse(event.data);
+				if (msg.type === "checkpoint") {
+					logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
+					flashCheckpoint(msg.name);
+
+					if (!intersectionConfig[msg.name] || msg.speed <= 0) return;
+					const { intersection, distance, passDuration } = intersectionConfig[msg.name];
+					const inter = intersections.find(i => i.name === intersection);
+					if (!inter) return;
+
+					const timeToReach = distance / msg.speed;
+					setTimeout(() => {
+						inter.svg.setAttribute("fill", "red");
+						logMessage(`${inter.name} intersection turned RED.`);
+					}, Math.max(timeToReach - 1, 0.1) * 1000);
+					setTimeout(() => {
+						inter.svg.setAttribute("fill", "green");
+						logMessage(`${inter.name} intersection turned GREEN.`);
+					}, (timeToReach + passDuration + 0.1) * 1000);
+				}
+			};
+			wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
+			wsCheckpoint.onclose = () => logMessage("Checkpoint WebSocket closed.");
+		}
+
+		for (let i = 0; i < pathPoints.length - 1; i++) {
+			const a = pathPoints[i];
+			const b = pathPoints[i + 1];
+			const railroad = document.createElementNS("http://www.w3.org/2000/svg", "line");
+			railroad.setAttribute("x1", a.x);
+			railroad.setAttribute("y1", a.y);
+			railroad.setAttribute("x2", b.x);
+			railroad.setAttribute("y2", b.y);
+			railroad.setAttribute("stroke", "#000");
+			railroad.setAttribute("stroke-dasharray", "10");
+			railroad.setAttribute("stroke-linecap", "round");
+			railroad.setAttribute("stroke-width", 8);
+			svg.appendChild(railroad);
+		}
+
+		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
+		road.setAttribute("x1", 470);
+		road.setAttribute("y1", 400);
+		road.setAttribute("x2", 130);
+		road.setAttribute("y2", 400);
+		road.setAttribute("stroke", "#444");
+		road.setAttribute("stroke-width", 4);
+		road.setAttribute("stroke-linecap", "round");
+		svg.appendChild(road);
+
+		intersections.forEach(inter => {
+			const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			marker.setAttribute("cx", inter.x);
+			marker.setAttribute("cy", inter.y);
+			marker.setAttribute("r", 5);
+			marker.setAttribute("fill", "green");
+			svg.appendChild(marker);
+			inter.svg = marker;
+		});
+
+		checkpoints.forEach(cp => {
+			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			circle.setAttribute("cx", cp.x);
+			circle.setAttribute("cy", cp.y);
+			circle.setAttribute("r", 10);
+			circle.setAttribute("fill", "#ff9800");
+			circle.setAttribute("stroke", "#e65100");
+			circle.setAttribute("stroke-width", 2);
+			svg.appendChild(circle);
+
+			const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+			label.setAttribute("x", cp.x + 12);
+			label.setAttribute("y", cp.y - 12);
+			label.textContent = cp.name;
+			label.setAttribute("fill", "#333");
+			label.setAttribute("font-size", "14px");
+			label.setAttribute("font-family", "sans-serif");
+			svg.appendChild(label);
+		});
+
+		const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		train.setAttribute("r", 12);
+		train.setAttribute("fill", "#1976d2");
+		train.setAttribute("stroke", "#0d47a1");
+		train.setAttribute("stroke-width", 3);
+		svg.appendChild(train);
+
+		function logMessage(text) {
+			const time = new Date().toLocaleTimeString();
+			log.textContent += `[${time}] ${text}\n`;
+			log.scrollTop = log.scrollHeight;
+		}
+
+		function flashCheckpoint(name) {
+			const cp = checkpoints.find(c => c.name === name);
+			if (!cp) return;
+			const circles = svg.querySelectorAll("circle");
+			circles.forEach(c => {
+				if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
+					const origFill = c.getAttribute("fill");
+					c.setAttribute("fill", "red");
+					setTimeout(() => c.setAttribute("fill", origFill), 700);
+				}
+			});
+		}
+	</script>
+</body>
+</html>
