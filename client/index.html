@@ -58,6 +58,11 @@
 			{ name: "Beta", x: 300, y: 470 }
 		];
 
+		const intersections = [
+			{ name: "East", x: 415, y: 400, svg: null },
+			{ name: "West", x: 185, y: 400, svg: null }
+		];
+
 		const apiListUrl = 'https://script.google.com/macros/s/AKfycbzELXfSETWl3eC8D4hFBd5WUe6FkRbY_90FkZrNt7_mxzEl4RL4-SX_azeJt0NvP12z/exec';
 
 		fetch(apiListUrl)
@@ -93,32 +98,35 @@
 					logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
 					flashCheckpoint(msg.name);
 
-					// Calculate timing to intersection
-					const intersectionX = 415;
-					const intersectionY = 400;
-
 					const cp = checkpoints.find(c => c.name === msg.name);
 					if (!cp || msg.speed <= 0) return;
 
-					const dx = cp.x - intersectionX;
-					const dy = cp.y - intersectionY;
-					const distance = Math.sqrt(dx * dx + dy * dy); // in pixels
-					const speed = msg.speed; // in px/s
+					const speed = msg.speed; // px/s
+					const passDuration = 1.5;
 
-					const timeToIntersection = distance / speed;
-					const trainPassDuration = 1.5; // time the train takes to pass the intersection
+					// Assign specific intersections
+					let inter = null;
+					if (msg.name === "Alpha") {
+						inter = intersections.find(i => i.name === "East");
+					} else if (msg.name === "Beta") {
+						inter = intersections.find(i => i.name === "West");
+					}
+					if (!inter) return;
 
-					// Turn red 1s before train arrives
+					const dx = cp.x - inter.x;
+					const dy = cp.y - inter.y;
+					const distance = Math.sqrt(dx * dx + dy * dy);
+					const timeToReach = distance / speed;
+
 					setTimeout(() => {
-						intersection.setAttribute("fill", "red");
-						logMessage("Intersection turned RED.");
-					}, Math.max((timeToIntersection - 1), 0) * 1000);
+						inter.svg.setAttribute("fill", "red");
+						logMessage(`${inter.name} intersection turned RED.`);
+					}, Math.max(timeToReach - 1, 0) * 1000);
 
-					// Turn green 1s after train leaves
 					setTimeout(() => {
-						intersection.setAttribute("fill", "green");
-						logMessage("Intersection turned GREEN.");
-					}, (timeToIntersection + trainPassDuration + 1) * 1000);
+						inter.svg.setAttribute("fill", "green");
+						logMessage(`${inter.name} intersection turned GREEN.`);
+					}, (timeToReach + passDuration + 1) * 1000);
 				}
 			};
 			wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
@@ -141,7 +149,7 @@
 			svg.appendChild(railroad);
 		}
 
-		// Draw road (y = 400)
+		// Road
 		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
 		road.setAttribute("x1", 470);
 		road.setAttribute("y1", 400);
@@ -152,13 +160,16 @@
 		road.setAttribute("stroke-linecap", "round");
 		svg.appendChild(road);
 
-		// Intersection marker
-		const intersection = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-		intersection.setAttribute("cx", 415);
-		intersection.setAttribute("cy", 400);
-		intersection.setAttribute("r", 5);
-		intersection.setAttribute("fill", "green"); // starts green
-		svg.appendChild(intersection);
+		// Intersections
+		intersections.forEach(inter => {
+			const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			marker.setAttribute("cx", inter.x);
+			marker.setAttribute("cy", inter.y);
+			marker.setAttribute("r", 5);
+			marker.setAttribute("fill", "green");
+			svg.appendChild(marker);
+			inter.svg = marker;
+		});
 
 		// Checkpoints
 		checkpoints.forEach(cp => {
