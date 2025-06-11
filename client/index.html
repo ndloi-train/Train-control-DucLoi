@@ -103,14 +103,15 @@
 		for (let i = 0; i < pathPoints.length - 1; i++) {
 			const a = pathPoints[i];
 			const b = pathPoints[i + 1];
-			const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-			line.setAttribute("x1", a.x);
-			line.setAttribute("y1", a.y);
-			line.setAttribute("x2", b.x);
-			line.setAttribute("y2", b.y);
-			line.setAttribute("stroke", "#999");
-			line.setAttribute("stroke-width", 4);
-			svg.appendChild(line);
+			const railroad = document.createElementNS("http://www.w3.org/2000/svg", "line");
+			railroad.setAttribute("x1", a.x);
+			railroad.setAttribute("y1", a.y);
+			railroad.setAttribute("x2", b.x);
+			railroad.setAttribute("y2", b.y);
+			railroad.setAttribute("stroke", "#000");
+			railroad.setAttribute("stroke-dasharray", "12,6"); // dashed line
+			railroad.setAttribute("stroke-width", 8);
+			svg.appendChild(railroad);
 		}
 
 		// Draw road cutting through railroad (at y = 400)
@@ -119,9 +120,9 @@
 		road.setAttribute("y1", 400);
 		road.setAttribute("x2", 130);
 		road.setAttribute("y2", 400);
-		road.setAttribute("stroke", "#fff"); // white
-		road.setAttribute("stroke-width", 8);
-		road.setAttribute("stroke-dasharray", "12,6"); // dashed line
+		road.setAttribute("stroke", "#ffd"); // white
+		road.setAttribute("stroke-width", 4);
+		
 		road.setAttribute("stroke-linecap", "round");
 		svg.appendChild(road);
 
