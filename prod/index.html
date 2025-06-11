@@ -5,91 +5,99 @@
 	<title>FPT Train Control</title>
 	<style>
 		body {
-			font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-			background: linear-gradient(to bottom right, #e3f2fd, #ffffff);
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: #f4f4f4;
 			margin: 0;
 			padding: 0;
 		}
 		header {
-			background-color: #0c4da2;
+			background: #0072c6;
 			color: white;
-			padding: 20px;
+			padding: 10px 0;
 			text-align: center;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		}
-		#dashboard {
-			display: flex;
-			justify-content: center;
-			gap: 30px;
-			margin-top: 20px;
-		}
-		.card {
-			background: white;
-			border-radius: 10px;
-			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-			padding: 20px;
-			min-width: 200px;
-			text-align: center;
-		}
-		h2 {
-			margin: 0 0 10px 0;
-			font-size: 20px;
-			color: #333;
+		h1 {
+			margin: 0;
 		}
 		#svg {
-			display: block;
-			margin: 20px auto;
-			background: #fff;
+			background: white;
 			border: 1px solid #ccc;
+			margin: 20px auto;
+			display: block;
 		}
 		table {
-			margin: 20px auto;
+			margin: 0 auto 30px;
 			border-collapse: collapse;
-			width: 80%;
-			background: white;
+			width: 90%;
+			background: #fff;
 			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 		}
-		table, th, td {
+		table th, table td {
 			border: 1px solid #ccc;
-		}
-		th, td {
 			padding: 8px 12px;
 			text-align: center;
 		}
-		th {
-			background-color: #f0f0f0;
+		table th {
+			background: #0072c6;
+			color: white;
 		}
 	</style>
 </head>
 <body>
 	<header>
-		<h1>FPT Train Control Dashboard</h1>
+		<h1>FPT Train Control</h1>
+		<h2>Train Speed: <span id="speed">0</span> px/s</h2>
 	</header>
-
-	<div id="dashboard">
-		<div class="card">
-			<h2>Train Speed</h2>
-			<p><span id="speed">0</span> px/s</p>
-		</div>
-	</div>
 
 	<svg id="svg" width="600" height="600"></svg>
 
 	<table>
 		<thead>
-			<tr><th>Source</th><th>Event</th><th>Speed (px/s)</th><th>Timestamp</th></tr>
+			<tr>
+				<th>Source</th>
+				<th>Speed (px/s)</th>
+				<th>Timestamp</th>
+				<th>Intersection Countdown (s)</th>
+				<th>Intersection Status</th>
+			</tr>
 		</thead>
-		<tbody id="log-grid"></tbody>
+		<tbody id="log-table"></tbody>
 	</table>
 
 	<script>
 		const svg = document.getElementById("svg");
 		const speedEl = document.getElementById("speed");
-		const logGrid = document.getElementById("log-grid");
+		const logTable = document.getElementById("log-table");
+
 		const latestLogs = {};
 
+		function updateLogTable() {
+			logTable.innerHTML = '';
+			Object.values(latestLogs).forEach(log => {
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td>${log.source}</td>
+					<td>${log.speed.toFixed(1)}</td>
+					<td>${log.timestamp}</td>
+					<td>${log.countdown !== undefined ? log.countdown.toFixed(1) : ''}</td>
+					<td>${log.status || ''}</td>
+				`;
+				logTable.appendChild(row);
+			});
+		}
+
 		const intersectionConfig = {
-			Alpha: { intersection: "East", distance: 350, passDuration: 1 },
-			Beta: { intersection: "West", distance: 350, passDuration: 1 }
+			Alpha: {
+				intersection: "East",
+				distance: 350,
+				passDuration: 1
+			},
+			Beta: {
+				intersection: "West",
+				distance: 350,
+				passDuration: 1
+			}
 		};
 
 		const pathPoints = [
@@ -125,15 +133,8 @@
 					api_url_list[api.name] = api.url;
 				});
 				startWebSockets(api_url_list);
-			});
-
-		function updateLog(source, event, speed) {
-			const time = new Date().toLocaleTimeString();
-			latestLogs[source] = { event, speed: speed.toFixed(1), time };
-			logGrid.innerHTML = Object.entries(latestLogs).map(([src, val]) =>
-				`<tr><td>${src}</td><td>${val.event}</td><td>${val.speed}</td><td>${val.time}</td></tr>`
-			).join('');
-		}
+			})
+			.catch(console.error);
 
 		function startWebSockets(api_url_list) {
 			const wsPosition = new WebSocket(`wss://${api_url_list.Train_Sim}/ws/position`);
@@ -143,6 +144,13 @@
 					train.setAttribute("cx", msg.x);
 					train.setAttribute("cy", msg.y);
 					speedEl.textContent = msg.speed.toFixed(1);
+
+					latestLogs["Position"] = {
+						source: "Position",
+						speed: msg.speed,
+						timestamp: new Date().toLocaleTimeString()
+					};
+					updateLogTable();
 				}
 			};
 
@@ -150,7 +158,6 @@
 			wsCheckpoint.onmessage = event => {
 				const msg = JSON.parse(event.data);
 				if (msg.type === "checkpoint") {
-					updateLog(msg.name, "Checkpoint Hit", msg.speed);
 					flashCheckpoint(msg.name);
 
 					if (!intersectionConfig[msg.name] || msg.speed <= 0) return;
@@ -160,66 +167,62 @@
 					if (!inter) return;
 
 					const timeToReach = distance / msg.speed;
+					inter.svg.setAttribute("fill", "red");
+					setTimeout(() => inter.svg.setAttribute("fill", "green"), (timeToReach + passDuration + 0.1) * 1000);
 
-					setTimeout(() => {
-						inter.svg.setAttribute("fill", "red");
-						updateLog(inter.name, "RED", msg.speed);
-					}, Math.max(timeToReach - 1, 0.1) * 1000);
-
-					setTimeout(() => {
-						inter.svg.setAttribute("fill", "green");
-						updateLog(inter.name, "GREEN", msg.speed);
-					}, (timeToReach + passDuration + 0.1) * 1000);
+					latestLogs[msg.name] = {
+						source: msg.name,
+						speed: msg.speed,
+						timestamp: new Date().toLocaleTimeString(),
+						countdown: timeToReach,
+						status: "RED"
+					};
+					updateLogTable();
 				}
 			};
 		}
 
-		// Draw railroad path
-		for (let i = 0; i < pathPoints.length - 1; i++) {
-			const a = pathPoints[i];
+		pathPoints.slice(0, -1).forEach((a, i) => {
 			const b = pathPoints[i + 1];
 			const railroad = document.createElementNS("http://www.w3.org/2000/svg", "line");
 			railroad.setAttribute("x1", a.x);
 			railroad.setAttribute("y1", a.y);
 			railroad.setAttribute("x2", b.x);
 			railroad.setAttribute("y2", b.y);
-			railroad.setAttribute("stroke", "#444");
-			railroad.setAttribute("stroke-dasharray", "8");
+			railroad.setAttribute("stroke", "#000");
+			railroad.setAttribute("stroke-dasharray", "10");
 			railroad.setAttribute("stroke-linecap", "round");
-			railroad.setAttribute("stroke-width", 6);
+			railroad.setAttribute("stroke-width", 8);
 			svg.appendChild(railroad);
-		}
+		});
 
-		// Road
 		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
 		road.setAttribute("x1", 470);
 		road.setAttribute("y1", 400);
 		road.setAttribute("x2", 130);
 		road.setAttribute("y2", 400);
-		road.setAttribute("stroke", "#aaa");
+		road.setAttribute("stroke", "#444");
 		road.setAttribute("stroke-width", 4);
 		road.setAttribute("stroke-linecap", "round");
 		svg.appendChild(road);
 
-		// Intersections
 		intersections.forEach(inter => {
 			const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			marker.setAttribute("cx", inter.x);
 			marker.setAttribute("cy", inter.y);
-			marker.setAttribute("r", 6);
+			marker.setAttribute("r", 5);
 			marker.setAttribute("fill", "green");
 			svg.appendChild(marker);
 			inter.svg = marker;
 		});
 
-		// Checkpoints
 		checkpoints.forEach(cp => {
 			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			circle.setAttribute("cx", cp.x);
 			circle.setAttribute("cy", cp.y);
 			circle.setAttribute("r", 10);
-			circle.setAttribute("fill", "#ff9800");
-			circle.setAttribute("stroke", "#e65100");
+			circle.setAttribute("fill", "#cc0");
+			circle.setAttribute("stroke", "#aa0");
 			circle.setAttribute("stroke-width", 2);
 			svg.appendChild(circle);
 
@@ -233,23 +236,21 @@
 			svg.appendChild(label);
 		});
 
-		// Train
 		const train = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 		train.setAttribute("r", 12);
-		train.setAttribute("fill", "#1976d2");
-		train.setAttribute("stroke", "#0d47a1");
+		train.setAttribute("fill", "#007700");
+		train.setAttribute("stroke", "#004400");
 		train.setAttribute("stroke-width", 3);
 		svg.appendChild(train);
 
 		function flashCheckpoint(name) {
 			const cp = checkpoints.find(c => c.name === name);
 			if (!cp) return;
-			const circles = svg.querySelectorAll("circle");
-			circles.forEach(c => {
-				if (+c.getAttribute("cx") === cp.x && +c.getAttribute("cy") === cp.y) {
-					const orig = c.getAttribute("fill");
+			svg.querySelectorAll("circle").forEach(c => {
+				if (parseFloat(c.getAttribute("cx")) === cp.x && parseFloat(c.getAttribute("cy")) === cp.y) {
+					const origFill = c.getAttribute("fill");
 					c.setAttribute("fill", "red");
-					setTimeout(() => c.setAttribute("fill", orig), 700);
+					setTimeout(() => c.setAttribute("fill", origFill), 700);
 				}
 			});
 		}
