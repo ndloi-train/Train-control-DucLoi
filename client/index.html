@@ -113,17 +113,24 @@
 			svg.appendChild(line);
 		}
 
-		// Draw road cutting through railroad
+		// Draw road cutting through railroad (at y = 400)
 		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
 		road.setAttribute("x1", 470);
-		road.setAttribute("y1", 490);
+		road.setAttribute("y1", 400);
 		road.setAttribute("x2", 130);
-		road.setAttribute("y2", 490);
-		road.setAttribute("stroke", "#222");
-		road.setAttribute("stroke-width", 10);
-		road.setAttribute("stroke-dasharray", "18,8");
+		road.setAttribute("y2", 400);
+		road.setAttribute("stroke", "#f60"); // Changed from #222 to orange
+		road.setAttribute("stroke-width", 12); // Thicker
 		road.setAttribute("stroke-linecap", "round");
 		svg.appendChild(road);
+
+		// Intersection marker (optional)
+		const intersection = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		intersection.setAttribute("cx", 300);
+		intersection.setAttribute("cy", 400);
+		intersection.setAttribute("r", 5);
+		intersection.setAttribute("fill", "red");
+		svg.appendChild(intersection);
 
 		// Draw checkpoints
 		checkpoints.forEach(cp => {
