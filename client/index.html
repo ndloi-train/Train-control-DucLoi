@@ -92,6 +92,33 @@
 				if (msg.type === "checkpoint") {
 					logMessage(`Checkpoint hit: ${msg.name} at speed ${msg.speed.toFixed(1)}`);
 					flashCheckpoint(msg.name);
+
+					// Calculate timing to intersection
+					const intersectionX = 415;
+					const intersectionY = 400;
+
+					const cp = checkpoints.find(c => c.name === msg.name);
+					if (!cp || msg.speed <= 0) return;
+
+					const dx = cp.x - intersectionX;
+					const dy = cp.y - intersectionY;
+					const distance = Math.sqrt(dx * dx + dy * dy); // in pixels
+					const speed = msg.speed; // in px/s
+
+					const timeToIntersection = distance / speed;
+					const trainPassDuration = 1.5; // time the train takes to pass the intersection
+
+					// Turn red 1s before train arrives
+					setTimeout(() => {
+						intersection.setAttribute("fill", "red");
+						logMessage("Intersection turned RED.");
+					}, Math.max((timeToIntersection - 1), 0) * 1000);
+
+					// Turn green 1s after train leaves
+					setTimeout(() => {
+						intersection.setAttribute("fill", "green");
+						logMessage("Intersection turned GREEN.");
+					}, (timeToIntersection + trainPassDuration + 1) * 1000);
 				}
 			};
 			wsCheckpoint.onerror = () => logMessage("Error with checkpoint WebSocket.");
@@ -108,13 +135,13 @@
 			railroad.setAttribute("x2", b.x);
 			railroad.setAttribute("y2", b.y);
 			railroad.setAttribute("stroke", "#000");
-			railroad.setAttribute("stroke-dasharray", "10"); // dashed line
+			railroad.setAttribute("stroke-dasharray", "10");
 			railroad.setAttribute("stroke-linecap", "round");
 			railroad.setAttribute("stroke-width", 8);
 			svg.appendChild(railroad);
 		}
 
-		// Draw road cutting through railroad (at y = 400)
+		// Draw road (y = 400)
 		const road = document.createElementNS("http://www.w3.org/2000/svg", "line");
 		road.setAttribute("x1", 470);
 		road.setAttribute("y1", 400);
@@ -122,19 +149,18 @@
 		road.setAttribute("y2", 400);
 		road.setAttribute("stroke", "#444");
 		road.setAttribute("stroke-width", 4);
-		
 		road.setAttribute("stroke-linecap", "round");
 		svg.appendChild(road);
 
-		// Intersection marker (optional)
+		// Intersection marker
 		const intersection = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 		intersection.setAttribute("cx", 415);
 		intersection.setAttribute("cy", 400);
 		intersection.setAttribute("r", 5);
-		intersection.setAttribute("fill", "red");
+		intersection.setAttribute("fill", "green"); // starts green
 		svg.appendChild(intersection);
 
-		// Draw checkpoints
+		// Checkpoints
 		checkpoints.forEach(cp => {
 			const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			circle.setAttribute("cx", cp.x);
