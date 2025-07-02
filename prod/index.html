@@ -74,99 +74,142 @@
   </table>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
-    let originalData = [];
-    let currentSort = { key: "", asc: true };
+	const GAS_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec";
+	let originalData = [];
+	let currentSort = { key: "", asc: true };
 
-    async function fetchData() {
-      const res = await fetch(GAS_URL);
-      const json = await res.json();
-      originalData = json.data;
-      populateFilters();
-      renderTable(originalData);
-    }
+	async function fetchDataAndRender() {
+		try {
+			const res = await fetch(GAS_URL, {
+				method: "GET",
+				mode: "cors",
+				headers: {
+					"Content-Type": "application/json",
+				}
+			});
+			const json = await res.json();
+			if (json.status === "success") {
+				originalData = json.data;
+				populateFilters();
+				renderTable(originalData);
+			}
+		} catch (err) {
+			console.error("Error fetching train data:", err);
+		}
+	}
 
-    function populateFilters() {
-      const tenTauSet = new Set();
-      const chuyenSet = new Set();
-      originalData.forEach(item => {
-        tenTauSet.add(item["Tên Tàu"]);
-        chuyenSet.add(item["Chuyến"]);
-      });
+	function populateFilters() {
+		const tenTauSelect = document.getElementById("filterTenTau");
+		const chuyenSelect = document.getElementById("filterChuyen");
+		const tenTauSet = new Set();
+		const chuyenSet = new Set();
 
-      const tenTauSelect = document.getElementById("filterTenTau");
-      tenTauSet.forEach(val => {
-        tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
-      });
+		originalData.forEach(item => {
+			tenTauSet.add(item["Tên Tàu"]);
+			chuyenSet.add(item["Chuyến"]);
+		});
 
-      const chuyenSelect = document.getElementById("filterChuyen");
-      chuyenSet.forEach(val => {
-        chuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
-      });
-    }
+		// Reset options
+		tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
+		chuyenSelect.innerHTML = `<option value="">All Chuyến</option>`;
 
-    function renderTable(data) {
-      const tbody = document.querySelector("#trainTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row["STT"]}</td>
-          <td>${row["Tên Tàu"]}</td>
-          <td>${row["Chuyến"]}</td>
-          <td>${row["Vận Tốc"]}</td>
-          <td>${row["Quãng Đường"]}</td>
-          <td>${row["Thời Gian"]}</td>
-          <td>${row["Thời Gian Tới"]}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+		tenTauSet.forEach(val => {
+			tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
+		});
+		chuyenSet.forEach(val => {
+			chuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
+		});
+	}
 
-    function filterAndSearch() {
-      const searchValue = document.getElementById("searchInput").value.toLowerCase();
-      const tenTauFilter = document.getElementById("filterTenTau").value;
-      const chuyenFilter = document.getElementById("filterChuyen").value;
+	function renderTable(data) {
+		const tbody = document.querySelector("#trainTable tbody");
+		tbody.innerHTML = "";
+		data.forEach(row => {
+			const tr = document.createElement("tr");
+			tr.innerHTML = `
+				<td>${row["STT"]}</td>
+				<td>${row["Tên Tàu"]}</td>
+				<td>${row["Chuyến"]}</td>
+				<td>${row["Vận Tốc"]}</td>
+				<td>${row["Quãng Đường"]}</td>
+				<td>${row["Thời Gian"]}</td>
+				<td>${row["Thời Gian Tới"]}</td>
+			`;
+			tbody.appendChild(tr);
+		});
+	}
 
-      let filtered = originalData.filter(item => {
-        const searchMatch = Object.values(item).some(val =>
-          String(val).toLowerCase().includes(searchValue)
-        );
-        const tenTauMatch = tenTauFilter === "" || item["Tên Tàu"] === tenTauFilter;
-        const chuyenMatch = chuyenFilter === "" || item["Chuyến"] === chuyenFilter;
-        return searchMatch && tenTauMatch && chuyenMatch;
-      });
+	function filterAndSearch() {
+		const searchValue = document.getElementById("searchInput").value.toLowerCase();
+		const tenTauFilter = document.getElementById("filterTenTau").value;
+		const chuyenFilter = document.getElementById("filterChuyen").value;
 
-      renderTable(filtered);
-    }
+		const filtered = originalData.filter(item => {
+			const matchSearch = Object.values(item).some(val =>
+				String(val).toLowerCase().includes(searchValue)
+			);
+			const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
+			const matchChuyen = !chuyenFilter || item["Chuyến"] === chuyenFilter;
+			return matchSearch && matchTenTau && matchChuyen;
+		});
 
-    function sortBy(key) {
-      const asc = currentSort.key === key ? !currentSort.asc : true;
-      currentSort = { key, asc };
+		renderTable(filtered);
+	}
 
-      const sorted = [...originalData].sort((a, b) => {
-        let valA = a[key];
-        let valB = b[key];
-        if (!isNaN(valA) && !isNaN(valB)) {
-          valA = Number(valA);
-          valB = Number(valB);
-        }
-        return asc ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
-      });
+	function sortBy(key) {
+		const asc = currentSort.key === key ? !currentSort.asc : true;
+		currentSort = { key, asc };
 
-      renderTable(sorted);
-    }
+		const sorted = [...originalData].sort((a, b) => {
+			let valA = a[key];
+			let valB = b[key];
+			if (!isNaN(valA) && !isNaN(valB)) {
+				valA = Number(valA);
+				valB = Number(valB);
+			}
+			return asc ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+		});
 
-    document.getElementById("searchInput").addEventListener("input", filterAndSearch);
-    document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
-    document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
+		renderTable(sorted);
+	}
 
-    document.querySelectorAll("#trainTable th").forEach(th => {
-      th.addEventListener("click", () => sortBy(th.dataset.key));
-    });
+	function setupWebSocket() {
+		const ws = new WebSocket("wss://fpt-train-control-websocket-relay-server.onrender.com");
 
-    fetchData();
-  </script>
+		ws.onopen = () => {
+			console.log("WebSocket connected.");
+		};
+
+		ws.onmessage = (event) => {
+			console.log("WebSocket message received:", event.data);
+			// Trigger re-fetch of updated data
+			fetchDataAndRender();
+		};
+
+		ws.onclose = () => {
+			console.warn("WebSocket disconnected. Reconnecting in 5s...");
+			setTimeout(setupWebSocket, 5000); // retry
+		};
+
+		ws.onerror = (err) => {
+			console.error("WebSocket error:", err);
+			ws.close();
+		};
+	}
+
+	// Setup events
+	document.getElementById("searchInput").addEventListener("input", filterAndSearch);
+	document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
+	document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
+	document.querySelectorAll("#trainTable th").forEach(th => {
+		th.addEventListener("click", () => sortBy(th.dataset.key));
+	});
+
+	// Run
+	fetchDataAndRender();
+	setupWebSocket();
+</script>
+
 
 </body>
 </html>
