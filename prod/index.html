@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Train Log</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f4f4;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    .controls {
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .controls input, .controls select {
+      padding: 6px;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background: #eee;
+      cursor: pointer;
+    }
+    tr:hover {
+      background: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Train Log</h1>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search..." />
+    <select id="filterTenTau">
+      <option value="">All Tên Tàu</option>
+    </select>
+    <select id="filterChuyen">
+      <option value="">All Chuyến</option>
+    </select>
+  </div>
+
+  <table id="trainTable">
+    <thead>
+      <tr>
+        <th data-key="STT">STT</th>
+        <th data-key="Tên Tàu">Tên Tàu</th>
+        <th data-key="Chuyến">Chuyến</th>
+        <th data-key="Vận Tốc">Vận Tốc</th>
+        <th data-key="Quãng Đường">Quãng Đường</th>
+        <th data-key="Thời Gian">Thời Gian</th>
+        <th data-key="Thời Gian Tới">Thời Gian Tới</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
+    let originalData = [];
+    let currentSort = { key: "", asc: true };
+
+    async function fetchData() {
+      const res = await fetch(GAS_URL);
+      const json = await res.json();
+      originalData = json.data;
+      populateFilters();
+      renderTable(originalData);
+    }
+
+    function populateFilters() {
+      const tenTauSet = new Set();
+      const chuyenSet = new Set();
+      originalData.forEach(item => {
+        tenTauSet.add(item["Tên Tàu"]);
+        chuyenSet.add(item["Chuyến"]);
+      });
+
+      const tenTauSelect = document.getElementById("filterTenTau");
+      tenTauSet.forEach(val => {
+        tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
+      });
+
+      const chuyenSelect = document.getElementById("filterChuyen");
+      chuyenSet.forEach(val => {
+        chuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector("#trainTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row["STT"]}</td>
+          <td>${row["Tên Tàu"]}</td>
+          <td>${row["Chuyến"]}</td>
+          <td>${row["Vận Tốc"]}</td>
+          <td>${row["Quãng Đường"]}</td>
+          <td>${row["Thời Gian"]}</td>
+          <td>${row["Thời Gian Tới"]}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterAndSearch() {
+      const searchValue = document.getElementById("searchInput").value.toLowerCase();
+      const tenTauFilter = document.getElementById("filterTenTau").value;
+      const chuyenFilter = document.getElementById("filterChuyen").value;
+
+      let filtered = originalData.filter(item => {
+        const searchMatch = Object.values(item).some(val =>
+          String(val).toLowerCase().includes(searchValue)
+        );
+        const tenTauMatch = tenTauFilter === "" || item["Tên Tàu"] === tenTauFilter;
+        const chuyenMatch = chuyenFilter === "" || item["Chuyến"] === chuyenFilter;
+        return searchMatch && tenTauMatch && chuyenMatch;
+      });
+
+      renderTable(filtered);
+    }
+
+    function sortBy(key) {
+      const asc = currentSort.key === key ? !currentSort.asc : true;
+      currentSort = { key, asc };
+
+      const sorted = [...originalData].sort((a, b) => {
+        let valA = a[key];
+        let valB = b[key];
+        if (!isNaN(valA) && !isNaN(valB)) {
+          valA = Number(valA);
+          valB = Number(valB);
+        }
+        return asc ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+      });
+
+      renderTable(sorted);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", filterAndSearch);
+    document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
+    document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
+
+    document.querySelectorAll("#trainTable th").forEach(th => {
+      th.addEventListener("click", () => sortBy(th.dataset.key));
+    });
+
+    fetchData();
+  </script>
+
+</body>
+</html>
