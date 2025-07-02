@@ -96,7 +96,7 @@
 
   async function fetchDataAndRender() {
     try {
-      const res = await fetch(GAS_URL, {
+      const res = await fetch(GAS_URL + "?t=" + Date.now(), {
         method: "GET",
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
       });
