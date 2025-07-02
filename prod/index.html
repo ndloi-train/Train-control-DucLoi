@@ -56,6 +56,15 @@
     <select id="filterChuyen">
       <option value="">All Chuyến</option>
     </select>
+    <select id="speedUnit">
+      <option value="kmh">Vận Tốc: km/giờ</option>
+      <option value="mh">Vận Tốc: m/giờ</option>
+      <option value="ms">Vận Tốc: m/giây</option>
+    </select>
+    <select id="distanceUnit">
+      <option value="km">Quãng Đường: Km</option>
+      <option value="m">Quãng Đường: m</option>
+    </select>
   </div>
 
   <table id="trainTable">
@@ -74,141 +83,168 @@
   </table>
 
   <script>
-	const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
-	let originalData = [];
-	let currentSort = { key: "", asc: true };
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
+  let originalData = [];
+  let currentSort = { key: "", asc: true };
 
-	async function fetchDataAndRender() {
-		try {
-			const res = await fetch(GAS_URL, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded",
-				}
-			});
-			const json = await res.json();
-			if (json.status === "success") {
-				originalData = json.data;
-				populateFilters();
-				renderTable(originalData);
-			}
-		} catch (err) {
-			console.error("Error fetching train data:", err);
-		}
-	}
+  function applySavedUnits() {
+    const savedSpeedUnit = localStorage.getItem("speedUnit");
+    const savedDistanceUnit = localStorage.getItem("distanceUnit");
+    if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
+    if (savedDistanceUnit) document.getElementById("distanceUnit").value = savedDistanceUnit;
+  }
 
-	function populateFilters() {
-		const tenTauSelect = document.getElementById("filterTenTau");
-		const chuyenSelect = document.getElementById("filterChuyen");
-		const tenTauSet = new Set();
-		const chuyenSet = new Set();
+  async function fetchDataAndRender() {
+    try {
+      const res = await fetch(GAS_URL, {
+        method: "GET",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        originalData = json.data;
+        populateFilters();
+        renderTable(originalData);
+      }
+    } catch (err) {
+      console.error("Error fetching train data:", err);
+    }
+  }
 
-		originalData.forEach(item => {
-			tenTauSet.add(item["Tên Tàu"]);
-			chuyenSet.add(item["Chuyến"]);
-		});
+  function populateFilters() {
+    const tenTauSelect = document.getElementById("filterTenTau");
+    const chuyenSelect = document.getElementById("filterChuyen");
+    const tenTauSet = new Set();
+    const chuyenSet = new Set();
 
-		// Reset options
-		tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
-		chuyenSelect.innerHTML = `<option value="">All Chuyến</option>`;
+    originalData.forEach(item => {
+      tenTauSet.add(item["Tên Tàu"]);
+      chuyenSet.add(item["Chuyến"]);
+    });
 
-		tenTauSet.forEach(val => {
-			tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
-		});
-		chuyenSet.forEach(val => {
-			chuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
-		});
-	}
+    tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
+    chuyenSelect.innerHTML = `<option value="">All Chuyến</option>`;
+    tenTauSet.forEach(val => {
+      tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    });
+    chuyenSet.forEach(val => {
+      chuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    });
+  }
 
-	function renderTable(data) {
-		const tbody = document.querySelector("#trainTable tbody");
-		tbody.innerHTML = "";
-		data.forEach(row => {
-			const tr = document.createElement("tr");
-			tr.innerHTML = `
-				<td>${row["STT"]}</td>
-				<td>${row["Tên Tàu"]}</td>
-				<td>${row["Chuyến"]}</td>
-				<td>${row["Vận Tốc"]}</td>
-				<td>${row["Quãng Đường"]}</td>
-				<td>${row["Thời Gian"]}</td>
-				<td>${row["Thời Gian Tới"]}</td>
-			`;
-			tbody.appendChild(tr);
-		});
-	}
+  function renderTable(data) {
+    const tbody = document.querySelector("#trainTable tbody");
+    tbody.innerHTML = "";
 
-	function filterAndSearch() {
-		const searchValue = document.getElementById("searchInput").value.toLowerCase();
-		const tenTauFilter = document.getElementById("filterTenTau").value;
-		const chuyenFilter = document.getElementById("filterChuyen").value;
+    const speedUnit = document.getElementById("speedUnit").value;
+    const distanceUnit = document.getElementById("distanceUnit").value;
 
-		const filtered = originalData.filter(item => {
-			const matchSearch = Object.values(item).some(val =>
-				String(val).toLowerCase().includes(searchValue)
-			);
-			const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
-			const matchChuyen = !chuyenFilter || item["Chuyến"] === chuyenFilter;
-			return matchSearch && matchTenTau && matchChuyen;
-		});
+    data.forEach(row => {
+      let speed = Number(row["Vận Tốc"]);
+      let distance = Number(row["Quãng Đường"]);
 
-		renderTable(filtered);
-	}
+      // Convert speed
+      if (speedUnit === "kmh") {
+        speed = speed.toFixed(2) + " km/h";
+      } else if (speedUnit === "mh") {
+        speed = (speed * 1000).toFixed(2) + " m/h";
+      } else if (speedUnit === "ms") {
+        speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
+      }
 
-	function sortBy(key) {
-		const asc = currentSort.key === key ? !currentSort.asc : true;
-		currentSort = { key, asc };
+      // Convert distance
+      if (distanceUnit === "km") {
+        distance = distance.toFixed(2) + " Km";
+      } else if (distanceUnit === "m") {
+        distance = (distance * 1000).toFixed(2) + " m";
+      }
 
-		const sorted = [...originalData].sort((a, b) => {
-			let valA = a[key];
-			let valB = b[key];
-			if (!isNaN(valA) && !isNaN(valB)) {
-				valA = Number(valA);
-				valB = Number(valB);
-			}
-			return asc ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
-		});
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row["STT"]}</td>
+        <td>${row["Tên Tàu"]}</td>
+        <td>${row["Chuyến"]}</td>
+        <td>${speed}</td>
+        <td>${distance}</td>
+        <td>${row["Thời Gian"]}</td>
+        <td>${row["Thời Gian Tới"]}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-		renderTable(sorted);
-	}
+  function filterAndSearch() {
+    const searchValue = document.getElementById("searchInput").value.toLowerCase();
+    const tenTauFilter = document.getElementById("filterTenTau").value;
+    const chuyenFilter = document.getElementById("filterChuyen").value;
 
-	function setupWebSocket() {
-		const ws = new WebSocket("wss://fpt-train-control-websocket-relay-server.onrender.com");
+    const filtered = originalData.filter(item => {
+      const matchSearch = Object.values(item).some(val =>
+        String(val).toLowerCase().includes(searchValue)
+      );
+      const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
+      const matchChuyen = !chuyenFilter || item["Chuyến"] === chuyenFilter;
+      return matchSearch && matchTenTau && matchChuyen;
+    });
 
-		ws.onopen = () => {
-			console.log("WebSocket connected.");
-		};
+    renderTable(filtered);
+  }
 
-		ws.onmessage = (event) => {
-			console.log("WebSocket message received:", event.data);
-			// Trigger re-fetch of updated data
-			fetchDataAndRender();
-		};
+  function sortBy(key) {
+    const asc = currentSort.key === key ? !currentSort.asc : true;
+    currentSort = { key, asc };
 
-		ws.onclose = () => {
-			console.warn("WebSocket disconnected. Reconnecting in 5s...");
-			setTimeout(setupWebSocket, 5000); // retry
-		};
+    const sorted = [...originalData].sort((a, b) => {
+      let valA = a[key];
+      let valB = b[key];
+      if (!isNaN(valA) && !isNaN(valB)) {
+        valA = Number(valA);
+        valB = Number(valB);
+      }
+      return asc ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+    });
 
-		ws.onerror = (err) => {
-			console.error("WebSocket error:", err);
-			ws.close();
-		};
-	}
+    renderTable(sorted);
+  }
 
-	// Setup events
-	document.getElementById("searchInput").addEventListener("input", filterAndSearch);
-	document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
-	document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
-	document.querySelectorAll("#trainTable th").forEach(th => {
-		th.addEventListener("click", () => sortBy(th.dataset.key));
-	});
+  function setupWebSocket() {
+    const ws = new WebSocket("wss://fpt-train-control-websocket-relay-server.onrender.com");
+    ws.onopen = () => console.log("WebSocket connected.");
+    ws.onmessage = (event) => {
+      console.log("WebSocket message received:", event.data);
+      fetchDataAndRender();
+    };
+    ws.onclose = () => {
+      console.warn("WebSocket disconnected. Reconnecting in 5s...");
+      setTimeout(setupWebSocket, 5000);
+    };
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      ws.close();
+    };
+  }
 
-	// Run
-	fetchDataAndRender();
-	setupWebSocket();
-</script>
+  // Setup events
+  document.getElementById("searchInput").addEventListener("input", filterAndSearch);
+  document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
+  document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
+  document.getElementById("speedUnit").addEventListener("change", () => {
+    localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
+    renderTable(originalData);
+  });
+  document.getElementById("distanceUnit").addEventListener("change", () => {
+    localStorage.setItem("distanceUnit", document.getElementById("distanceUnit").value);
+    renderTable(originalData);
+  });
+  document.querySelectorAll("#trainTable th").forEach(th => {
+    th.addEventListener("click", () => sortBy(th.dataset.key));
+  });
 
+  // Run
+  applySavedUnits();
+  fetchDataAndRender();
+  setupWebSocket();
+  </script>
 
 </body>
 </html>
