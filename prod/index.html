@@ -21,7 +21,7 @@
       gap: 10px;
       justify-content: center;
     }
-    .controls input, .controls select {
+    .controls input, .controls select, .controls button {
       padding: 6px;
       font-size: 14px;
     }
@@ -65,6 +65,8 @@
       <option value="km">Quãng Đường: Km</option>
       <option value="m">Quãng Đường: m</option>
     </select>
+    <button id="servoClose">Servo Close</button>
+    <button id="servoOpen">Servo Open</button>
   </div>
 
   <table id="trainTable">
@@ -86,6 +88,7 @@
   const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
   let originalData = [];
   let currentSort = { key: "", asc: true };
+  let ws = null;
 
   function applySavedUnits() {
     const savedSpeedUnit = localStorage.getItem("speedUnit");
@@ -208,11 +211,13 @@
   }
 
   function setupWebSocket() {
-    const ws = new WebSocket("wss://fpt-train-control-websocket-relay-server.onrender.com");
+    ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
     ws.onopen = () => console.log("WebSocket connected.");
     ws.onmessage = (event) => {
       console.log("WebSocket message received:", event.data);
-      fetchDataAndRender();
+      if (event.data === "front-end update") {
+        fetchDataAndRender();
+      }
     };
     ws.onclose = () => {
       console.warn("WebSocket disconnected. Reconnecting in 5s...");
@@ -224,7 +229,17 @@
     };
   }
 
-  // Setup events
+  document.getElementById("servoClose").addEventListener("click", () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send("servo close");
+    }
+  });
+  document.getElementById("servoOpen").addEventListener("click", () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send("servo open");
+    }
+  });
+
   document.getElementById("searchInput").addEventListener("input", filterAndSearch);
   document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
   document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
@@ -244,6 +259,9 @@
   applySavedUnits();
   fetchDataAndRender();
   setupWebSocket();
+
+  // Fetch data every 30 seconds
+  setInterval(fetchDataAndRender, 30000);
   </script>
 
 </body>
