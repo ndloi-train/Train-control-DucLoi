@@ -58,7 +58,6 @@
     background: #fff4eb;
   }
 </style>
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -67,12 +66,8 @@
 
 <div class="controls">
   <input type="text" id="searchInput" placeholder="Search..." />
-  <select id="filterTenTau">
-    <option value="">All Tên Tàu</option>
-  </select>
-  <select id="filterTuyen">
-    <option value="">All Tuyến</option>
-  </select>
+  <select id="filterTenTau"><option value="">All Tên Tàu</option></select>
+  <select id="filterTuyen"><option value="">All Tuyến</option></select>
   <select id="speedUnit">
     <option value="kmh">Vận Tốc: km/giờ</option>
     <option value="mh">Vận Tốc: m/giờ</option>
@@ -107,6 +102,14 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpg
 let originalData = [];
 let currentSort = { key: "", asc: true };
 let ws = null;
+
+function combineDateAndTime(dateStr, timeStr) {
+  const date = new Date(dateStr);
+  const time = new Date(timeStr);
+  if (isNaN(date.getTime()) || isNaN(time.getTime())) return null;
+  date.setUTCHours(time.getUTCHours(), time.getUTCMinutes(), time.getUTCSeconds());
+  return date;
+}
 
 function applySavedUnits() {
   const savedSpeedUnit = localStorage.getItem("speedUnit");
@@ -156,17 +159,12 @@ function renderTable(data) {
 
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
+    if (speedUnit === "mh") speed = speed * 1000;
+    else if (speedUnit === "ms") speed = speed * 1000 / 3600;
+    speed = speed.toFixed(2);
 
-    if (speedUnit === "kmh") {
-      speed = speed.toFixed(2) + " km/h";
-    } else if (speedUnit === "mh") {
-      speed = (speed * 1000).toFixed(2) + " m/h";
-    } else if (speedUnit === "ms") {
-      speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
-    }
-
-    const gioDen = new Date(row["Ngày Đến"]).toLocaleDateString() + " " + new Date(row["Giờ Đến"]).toLocaleTimeString();
-    const gioRoi = new Date(row["Ngày Rời"]).toLocaleDateString() + " " + new Date(row["Giờ Rời"]).toLocaleTimeString();
+    const gioDen = combineDateAndTime(row["Ngày Đến"], row["Giờ Đến"]);
+    const gioRoi = combineDateAndTime(row["Ngày Rời"], row["Giờ Rời"]);
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -175,8 +173,8 @@ function renderTable(data) {
       <td>${row["Tuyến"]}</td>
       <td>${row["Trạm"]}</td>
       <td>${speed}</td>
-      <td>${gioDen}</td>
-      <td>${gioRoi}</td>
+      <td>${gioDen ? gioDen.toLocaleString() : "Invalid"}</td>
+      <td>${gioRoi ? gioRoi.toLocaleString() : "Invalid"}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -184,26 +182,20 @@ function renderTable(data) {
 
 function renderSpeedChart(data) {
   const speedUnit = document.getElementById("speedUnit").value;
-
   const datasetsByTrain = {};
+
   data.forEach(item => {
     const name = item["Tên Tàu"];
-    const datetimeStr = `${item["Ngày Đến"]}T${item["Giờ Đến"]}`;
-    const date = new Date(datetimeStr);
+    const date = combineDateAndTime(item["Ngày Đến"], item["Giờ Đến"]);
+    if (!date) return;
     let speed = Number(item["Vận Tốc"]);
-    if (speedUnit === "kmh") {
-      // do nothing
-    } else if (speedUnit === "mh") {
-      speed = speed * 1000;
-    } else if (speedUnit === "ms") {
-      speed = speed * 1000 / 3600;
-    }
+    if (speedUnit === "mh") speed = speed * 1000;
+    else if (speedUnit === "ms") speed = speed * 1000 / 3600;
     if (!datasetsByTrain[name]) datasetsByTrain[name] = [];
     datasetsByTrain[name].push({ x: date, y: speed });
   });
 
   const colors = ["#FF6600","#007BFF","#28A745","#6F42C1","#E83E8C","#20C997","#FD7E14","#6610F2"];
-
   const datasets = Object.keys(datasetsByTrain).map((name, i) => ({
     label: name,
     data: datasetsByTrain[name].sort((a,b)=>a.x-b.x),
@@ -219,10 +211,12 @@ function renderSpeedChart(data) {
     data: { datasets },
     options: {
       responsive: true,
+      parsing: false,
       scales: {
-        x: { type: 'time', time: { tooltipFormat: 'DD/MM/YYYY HH:mm', unit: 'hour' }, title: { display: true, text: 'Time' } },
-        y: { beginAtZero: true, title: { display: true, text: 'Speed' } }
-      }
+        x: { type: 'time', time: { tooltipFormat: 'dd/MM/yyyy HH:mm:ss', unit: 'minute' }, title: { display: true, text: 'Thời gian' } },
+        y: { beginAtZero: true, title: { display: true, text: 'Vận tốc' } }
+      },
+      plugins: { legend: { position: 'bottom' } }
     }
   });
 }
@@ -248,7 +242,6 @@ function filterAndSearch() {
 function sortBy(key) {
   const asc = currentSort.key === key ? !currentSort.asc : true;
   currentSort = { key, asc };
-
   const sorted = [...originalData].sort((a, b) => {
     let valA = a[key];
     let valB = b[key];
@@ -258,7 +251,6 @@ function sortBy(key) {
     }
     return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
   });
-
   renderTable(sorted);
   renderSpeedChart(sorted);
 }
@@ -268,9 +260,7 @@ function setupWebSocket() {
   ws.onopen = () => console.log("WebSocket connected.");
   ws.onmessage = (event) => {
     console.log("WebSocket message received:", event.data);
-    if (event.data === "front-end update") {
-      fetchDataAndRender();
-    }
+    if (event.data === "front-end update") fetchDataAndRender();
   };
   ws.onclose = () => {
     console.warn("WebSocket disconnected. Reconnecting in 5s...");
@@ -305,6 +295,5 @@ fetchDataAndRender();
 setupWebSocket();
 setInterval(fetchDataAndRender, 30000);
 </script>
-
 </body>
 </html>
