@@ -188,7 +188,8 @@ function renderSpeedChart(data) {
   const datasetsByTrain = {};
   data.forEach(item => {
     const name = item["Tên Tàu"];
-    const date = new Date(item["Ngày Đến"] + " " + item["Giờ Đến"]);
+    const datetimeStr = `${item["Ngày Đến"]}T${item["Giờ Đến"]}`;
+    const date = new Date(datetimeStr);
     let speed = Number(item["Vận Tốc"]);
     if (speedUnit === "kmh") {
       // do nothing
