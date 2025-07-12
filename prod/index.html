@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Train Log</title>
+<title>FPT Train Log</title>
 <style>
   body {
     font-family: Arial, sans-serif;
     margin: 20px;
-    background: #f4f4f4;
+    background: #f9f9f9;
     color: #333;
   }
   h1 {
     text-align: center;
+    color: #FF6600;
   }
   .controls {
     margin-bottom: 15px;
@@ -24,29 +25,45 @@
   .controls input, .controls select, .controls button {
     padding: 6px;
     font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .controls button {
+    background: #FF6600;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  .controls button:hover {
+    background: #e65c00;
   }
   table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
   }
   th, td {
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #eee;
     text-align: center;
   }
   th {
-    background: #eee;
+    background: #FF6600;
+    color: #fff;
     cursor: pointer;
   }
   tr:hover {
-    background: #f1f1f1;
+    background: #fff4eb;
   }
 </style>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<h1>Train Log</h1>
+<h1>FPT Train Log</h1>
 
 <div class="controls">
   <input type="text" id="searchInput" placeholder="Search..." />
@@ -80,6 +97,11 @@
   <tbody></tbody>
 </table>
 
+<div style="margin-top: 40px;">
+  <h2 style="text-align:center; color:#FF6600;">Average Speed by Train</h2>
+  <canvas id="speedChart" height="100"></canvas>
+</div>
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
 let originalData = [];
@@ -99,6 +121,7 @@ async function fetchDataAndRender() {
       originalData = json.data;
       populateFilters();
       renderTable(originalData);
+      renderSpeedChart(originalData);
     }
   } catch (err) {
     console.error("Error fetching train data:", err);
@@ -134,7 +157,6 @@ function renderTable(data) {
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
 
-    // Convert speed
     if (speedUnit === "kmh") {
       speed = speed.toFixed(2) + " km/h";
     } else if (speedUnit === "mh") {
@@ -143,7 +165,6 @@ function renderTable(data) {
       speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
     }
 
-    // Combine date and time
     const gioDen = new Date(row["Ngày Đến"]).toLocaleDateString() + " " + new Date(row["Giờ Đến"]).toLocaleTimeString();
     const gioRoi = new Date(row["Ngày Rời"]).toLocaleDateString() + " " + new Date(row["Giờ Rời"]).toLocaleTimeString();
 
@@ -158,6 +179,45 @@ function renderTable(data) {
       <td>${gioRoi}</td>
     `;
     tbody.appendChild(tr);
+  });
+}
+
+function renderSpeedChart(data) {
+  const speedByTrain = {};
+  data.forEach(item => {
+    const name = item["Tên Tàu"];
+    if (!speedByTrain[name]) speedByTrain[name] = [];
+    speedByTrain[name].push(Number(item["Vận Tốc"]));
+  });
+
+  const labels = Object.keys(speedByTrain);
+  const averages = labels.map(name => {
+    const speeds = speedByTrain[name];
+    const avg = speeds.reduce((a,b)=>a+b,0)/speeds.length;
+    return avg.toFixed(2);
+  });
+
+  if (window.speedChartInstance) {
+    window.speedChartInstance.destroy();
+  }
+
+  const ctx = document.getElementById('speedChart').getContext('2d');
+  window.speedChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Average Speed (km/h)',
+        data: averages,
+        backgroundColor: '#FF6600'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
   });
 }
 
@@ -176,6 +236,7 @@ function filterAndSearch() {
   });
 
   renderTable(filtered);
+  renderSpeedChart(filtered);
 }
 
 function sortBy(key) {
@@ -193,6 +254,7 @@ function sortBy(key) {
   });
 
   renderTable(sorted);
+  renderSpeedChart(sorted);
 }
 
 function setupWebSocket() {
@@ -231,16 +293,16 @@ document.getElementById("filterTuyen").addEventListener("change", filterAndSearc
 document.getElementById("speedUnit").addEventListener("change", () => {
   localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
   renderTable(originalData);
+  renderSpeedChart(originalData);
 });
 document.querySelectorAll("#trainTable th").forEach(th => {
   th.addEventListener("click", () => sortBy(th.dataset.key));
 });
 
-// Init
 applySavedUnits();
 fetchDataAndRender();
 setupWebSocket();
-setInterval(fetchDataAndRender, 10000);
+setInterval(fetchDataAndRender, 30000);
 </script>
 
 </body>
