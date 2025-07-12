@@ -1,268 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Train Log</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f4f4f4;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-    }
-    .controls {
-      margin-bottom: 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-    .controls input, .controls select, .controls button {
-      padding: 6px;
-      font-size: 14px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background: #eee;
-      cursor: pointer;
-    }
-    tr:hover {
-      background: #f1f1f1;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Train Log</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #f4f4f4;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+  }
+  .controls {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .controls input, .controls select, .controls button {
+    padding: 6px;
+    font-size: 14px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+  th, td {
+    padding: 8px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+  th {
+    background: #eee;
+    cursor: pointer;
+  }
+  tr:hover {
+    background: #f1f1f1;
+  }
+</style>
 </head>
 <body>
 
-  <h1>Train Log</h1>
+<h1>Train Log</h1>
 
-  <div class="controls">
-    <input type="text" id="searchInput" placeholder="Search..." />
-    <select id="filterTenTau">
-      <option value="">All Tên Tàu</option>
-    </select>
-    <select id="filterChuyen">
-      <option value="">All Chuyến</option>
-    </select>
-    <select id="speedUnit">
-      <option value="kmh">Vận Tốc: km/giờ</option>
-      <option value="mh">Vận Tốc: m/giờ</option>
-      <option value="ms">Vận Tốc: m/giây</option>
-    </select>
-    <select id="distanceUnit">
-      <option value="km">Quãng Đường: Km</option>
-      <option value="m">Quãng Đường: m</option>
-    </select>
-    <button id="servoClose">Servo Close</button>
-    <button id="servoOpen">Servo Open</button>
-  </div>
+<div class="controls">
+  <input type="text" id="searchInput" placeholder="Search..." />
+  <select id="filterTenTau">
+    <option value="">All Tên Tàu</option>
+  </select>
+  <select id="filterTuyen">
+    <option value="">All Tuyến</option>
+  </select>
+  <select id="speedUnit">
+    <option value="kmh">Vận Tốc: km/giờ</option>
+    <option value="mh">Vận Tốc: m/giờ</option>
+    <option value="ms">Vận Tốc: m/giây</option>
+  </select>
+  <button id="servoClose">Servo Close</button>
+  <button id="servoOpen">Servo Open</button>
+</div>
 
-  <table id="trainTable">
-    <thead>
-      <tr>
-        <th data-key="STT">STT</th>
-        <th data-key="Tên Tàu">Tên Tàu</th>
-        <th data-key="Chuyến">Chuyến</th>
-        <th data-key="Vận Tốc">Vận Tốc</th>
-        <th data-key="Quãng Đường">Quãng Đường</th>
-        <th data-key="Thời Gian">Thời Gian</th>
-        <th data-key="Thời Gian Tới">Thời Gian Tới</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<table id="trainTable">
+  <thead>
+    <tr>
+      <th data-key="STT">STT</th>
+      <th data-key="Tên Tàu">Tên Tàu</th>
+      <th data-key="Tuyến">Tuyến</th>
+      <th data-key="Trạm">Trạm</th>
+      <th data-key="Vận Tốc">Vận Tốc</th>
+      <th data-key="Giờ Đến">Giờ Đến</th>
+      <th data-key="Giờ Rời">Giờ Rời</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <script>
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
-  let originalData = [];
-  let currentSort = { key: "", asc: true };
-  let ws = null;
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
+let originalData = [];
+let currentSort = { key: "", asc: true };
+let ws = null;
 
-  function applySavedUnits() {
-    const savedSpeedUnit = localStorage.getItem("speedUnit");
-    const savedDistanceUnit = localStorage.getItem("distanceUnit");
-    if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
-    if (savedDistanceUnit) document.getElementById("distanceUnit").value = savedDistanceUnit;
-  }
+function applySavedUnits() {
+  const savedSpeedUnit = localStorage.getItem("speedUnit");
+  if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
+}
 
-  async function fetchDataAndRender() {
-    try {
-      const res = await fetch(GAS_URL + "?t=" + Date.now(), {
-        method: "GET",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      });
-      const json = await res.json();
-      if (json.status === "success") {
-        originalData = json.data;
-        populateFilters();
-        renderTable(originalData);
-      }
-    } catch (err) {
-      console.error("Error fetching train data:", err);
+async function fetchDataAndRender() {
+  try {
+    const res = await fetch(GAS_URL + "?t=" + Date.now());
+    const json = await res.json();
+    if (json.status === "success") {
+      originalData = json.data;
+      populateFilters();
+      renderTable(originalData);
     }
+  } catch (err) {
+    console.error("Error fetching train data:", err);
   }
+}
 
-  function populateFilters() {
-    const tenTauSelect = document.getElementById("filterTenTau");
-    const chuyenSelect = document.getElementById("filterChuyen");
-    const tenTauSet = new Set();
-    const chuyenSet = new Set();
+function populateFilters() {
+  const tenTauSelect = document.getElementById("filterTenTau");
+  const tuyenSelect = document.getElementById("filterTuyen");
+  const tenTauSet = new Set();
+  const tuyenSet = new Set();
 
-    originalData.forEach(item => {
-      tenTauSet.add(item["Tên Tàu"]);
-      chuyenSet.add(item["Chuyến"]);
-    });
+  originalData.forEach(item => {
+    tenTauSet.add(item["Tên Tàu"]);
+    tuyenSet.add(item["Tuyến"]);
+  });
 
-    tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
-    chuyenSelect.innerHTML = `<option value="">All Chuyến</option>`;
-    tenTauSet.forEach(val => {
-      tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
-    });
-    chuyenSet.forEach(val => {
-      chuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
-    });
-  }
+  tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
+  tuyenSelect.innerHTML = `<option value="">All Tuyến</option>`;
+  tenTauSet.forEach(val => {
+    tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
+  });
+  tuyenSet.forEach(val => {
+    tuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
+  });
+}
 
-  function renderTable(data) {
-    const tbody = document.querySelector("#trainTable tbody");
-    tbody.innerHTML = "";
+function renderTable(data) {
+  const tbody = document.querySelector("#trainTable tbody");
+  tbody.innerHTML = "";
+  const speedUnit = document.getElementById("speedUnit").value;
 
-    const speedUnit = document.getElementById("speedUnit").value;
-    const distanceUnit = document.getElementById("distanceUnit").value;
+  data.forEach(row => {
+    let speed = Number(row["Vận Tốc"]);
 
-    data.forEach(row => {
-      let speed = Number(row["Vận Tốc"]);
-      let distance = Number(row["Quãng Đường"]);
-
-      // Convert speed
-      if (speedUnit === "kmh") {
-        speed = speed.toFixed(2) + " km/h";
-      } else if (speedUnit === "mh") {
-        speed = (speed * 1000).toFixed(2) + " m/h";
-      } else if (speedUnit === "ms") {
-        speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
-      }
-
-      // Convert distance
-      if (distanceUnit === "km") {
-        distance = distance.toFixed(2) + " Km";
-      } else if (distanceUnit === "m") {
-        distance = (distance * 1000).toFixed(2) + " m";
-      }
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row["STT"]}</td>
-        <td>${row["Tên Tàu"]}</td>
-        <td>${row["Chuyến"]}</td>
-        <td>${speed}</td>
-        <td>${distance}</td>
-        <td>${row["Thời Gian"]}</td>
-        <td>${row["Thời Gian Tới"]}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function filterAndSearch() {
-    const searchValue = document.getElementById("searchInput").value.toLowerCase();
-    const tenTauFilter = document.getElementById("filterTenTau").value;
-    const chuyenFilter = document.getElementById("filterChuyen").value;
-
-    const filtered = originalData.filter(item => {
-      const matchSearch = Object.values(item).some(val =>
-        String(val).toLowerCase().includes(searchValue)
-      );
-      const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
-      const matchChuyen = !chuyenFilter || item["Chuyến"] === chuyenFilter;
-      return matchSearch && matchTenTau && matchChuyen;
-    });
-
-    renderTable(filtered);
-  }
-
-  function sortBy(key) {
-    const asc = currentSort.key === key ? !currentSort.asc : true;
-    currentSort = { key, asc };
-
-    const sorted = [...originalData].sort((a, b) => {
-      let valA = a[key];
-      let valB = b[key];
-      if (!isNaN(valA) && !isNaN(valB)) {
-        valA = Number(valA);
-        valB = Number(valB);
-      }
-      return asc ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
-    });
-
-    renderTable(sorted);
-  }
-
-  function setupWebSocket() {
-    ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
-    ws.onopen = () => console.log("WebSocket connected.");
-    ws.onmessage = (event) => {
-      console.log("WebSocket message received:", event.data);
-      if (event.data === "front-end update") {
-        fetchDataAndRender();
-      }
-    };
-    ws.onclose = () => {
-      console.warn("WebSocket disconnected. Reconnecting in 5s...");
-      setTimeout(setupWebSocket, 5000);
-    };
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err);
-      ws.close();
-    };
-  }
-
-  document.getElementById("servoClose").addEventListener("click", () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send("servo close");
+    // Convert speed
+    if (speedUnit === "kmh") {
+      speed = speed.toFixed(2) + " km/h";
+    } else if (speedUnit === "mh") {
+      speed = (speed * 1000).toFixed(2) + " m/h";
+    } else if (speedUnit === "ms") {
+      speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
     }
+
+    // Combine date and time
+    const gioDen = new Date(row["Ngày Đến"]).toLocaleDateString() + " " + new Date(row["Giờ Đến"]).toLocaleTimeString();
+    const gioRoi = new Date(row["Ngày Rời"]).toLocaleDateString() + " " + new Date(row["Giờ Rời"]).toLocaleTimeString();
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row["STT"]}</td>
+      <td>${row["Tên Tàu"]}</td>
+      <td>${row["Tuyến"]}</td>
+      <td>${row["Trạm"]}</td>
+      <td>${speed}</td>
+      <td>${gioDen}</td>
+      <td>${gioRoi}</td>
+    `;
+    tbody.appendChild(tr);
   });
-  document.getElementById("servoOpen").addEventListener("click", () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send("servo open");
+}
+
+function filterAndSearch() {
+  const searchValue = document.getElementById("searchInput").value.toLowerCase();
+  const tenTauFilter = document.getElementById("filterTenTau").value;
+  const tuyenFilter = document.getElementById("filterTuyen").value;
+
+  const filtered = originalData.filter(item => {
+    const matchSearch = Object.values(item).some(val =>
+      String(val).toLowerCase().includes(searchValue)
+    );
+    const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
+    const matchTuyen = !tuyenFilter || item["Tuyến"] === tuyenFilter;
+    return matchSearch && matchTenTau && matchTuyen;
+  });
+
+  renderTable(filtered);
+}
+
+function sortBy(key) {
+  const asc = currentSort.key === key ? !currentSort.asc : true;
+  currentSort = { key, asc };
+
+  const sorted = [...originalData].sort((a, b) => {
+    let valA = a[key];
+    let valB = b[key];
+    if (!isNaN(valA) && !isNaN(valB)) {
+      valA = Number(valA);
+      valB = Number(valB);
     }
+    return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
   });
 
-  document.getElementById("searchInput").addEventListener("input", filterAndSearch);
-  document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
-  document.getElementById("filterChuyen").addEventListener("change", filterAndSearch);
-  document.getElementById("speedUnit").addEventListener("change", () => {
-    localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
-    renderTable(originalData);
-  });
-  document.getElementById("distanceUnit").addEventListener("change", () => {
-    localStorage.setItem("distanceUnit", document.getElementById("distanceUnit").value);
-    renderTable(originalData);
-  });
-  document.querySelectorAll("#trainTable th").forEach(th => {
-    th.addEventListener("click", () => sortBy(th.dataset.key));
-  });
+  renderTable(sorted);
+}
 
-  // Run
-  applySavedUnits();
-  fetchDataAndRender();
-  setupWebSocket();
+function setupWebSocket() {
+  ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
+  ws.onopen = () => console.log("WebSocket connected.");
+  ws.onmessage = (event) => {
+    console.log("WebSocket message received:", event.data);
+    if (event.data === "front-end update") {
+      fetchDataAndRender();
+    }
+  };
+  ws.onclose = () => {
+    console.warn("WebSocket disconnected. Reconnecting in 5s...");
+    setTimeout(setupWebSocket, 5000);
+  };
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+    ws.close();
+  };
+}
 
-  // Fetch data every 30 seconds
-  setInterval(fetchDataAndRender, 30000);
-  </script>
+document.getElementById("servoClose").addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send("servo close");
+  }
+});
+document.getElementById("servoOpen").addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send("servo open");
+  }
+});
+
+document.getElementById("searchInput").addEventListener("input", filterAndSearch);
+document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
+document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
+document.getElementById("speedUnit").addEventListener("change", () => {
+  localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
+  renderTable(originalData);
+});
+document.querySelectorAll("#trainTable th").forEach(th => {
+  th.addEventListener("click", () => sortBy(th.dataset.key));
+});
+
+// Init
+applySavedUnits();
+fetchDataAndRender();
+setupWebSocket();
+setInterval(fetchDataAndRender, 30000);
+</script>
 
 </body>
 </html>
