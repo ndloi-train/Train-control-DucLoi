@@ -58,8 +58,6 @@
     background: #fff4eb;
   }
 </style>
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -90,17 +88,13 @@
       <th data-key="Tuyến">Tuyến</th>
       <th data-key="Trạm">Trạm</th>
       <th data-key="Vận Tốc">Vận Tốc</th>
-      <th data-key="Giờ Đến">Giờ Đến</th>
-      <th data-key="Giờ Rời">Giờ Rời</th>
+      <th data-key="Ngày Đến">Ngày Đến</th>
+      <th data-key="Ngày Rời">Ngày Rời</th>
+      <th data-key="Trạng Thái">Trạng Thái</th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
-
-<div style="margin-top: 40px;">
-  <h2 style="text-align:center; color:#FF6600;">Average Speed by Train</h2>
-  <canvas id="speedChart" height="100"></canvas>
-</div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
@@ -121,7 +115,6 @@ async function fetchDataAndRender() {
       originalData = json.data;
       populateFilters();
       renderTable(originalData);
-      renderSpeedChart(originalData);
     }
   } catch (err) {
     console.error("Error fetching train data:", err);
@@ -165,8 +158,8 @@ function renderTable(data) {
       speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
     }
 
-    const gioDen = new Date(row["Ngày Đến"]).toLocaleDateString() + " " + new Date(row["Giờ Đến"]).toLocaleTimeString();
-    const gioRoi = new Date(row["Ngày Rời"]).toLocaleDateString() + " " + new Date(row["Giờ Rời"]).toLocaleTimeString();
+    const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString();
+    const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString();
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -175,49 +168,11 @@ function renderTable(data) {
       <td>${row["Tuyến"]}</td>
       <td>${row["Trạm"]}</td>
       <td>${speed}</td>
-      <td>${gioDen}</td>
-      <td>${gioRoi}</td>
+      <td>${ngayDen}</td>
+      <td>${ngayRoi}</td>
+      <td>${row["Trạng Thái"]}</td>
     `;
     tbody.appendChild(tr);
-  });
-}
-
-function renderSpeedChart(data) {
-  const speedByTrain = {};
-  data.forEach(item => {
-    const name = item["Tên Tàu"];
-    if (!speedByTrain[name]) speedByTrain[name] = [];
-    speedByTrain[name].push(Number(item["Vận Tốc"]));
-  });
-
-  const labels = Object.keys(speedByTrain);
-  const averages = labels.map(name => {
-    const speeds = speedByTrain[name];
-    const avg = speeds.reduce((a,b)=>a+b,0)/speeds.length;
-    return avg.toFixed(2);
-  });
-
-  if (window.speedChartInstance) {
-    window.speedChartInstance.destroy();
-  }
-
-  const ctx = document.getElementById('speedChart').getContext('2d');
-  window.speedChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Average Speed (km/h)',
-        data: averages,
-        backgroundColor: '#FF6600'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
   });
 }
 
@@ -236,7 +191,6 @@ function filterAndSearch() {
   });
 
   renderTable(filtered);
-  renderSpeedChart(filtered);
 }
 
 function sortBy(key) {
@@ -254,7 +208,6 @@ function sortBy(key) {
   });
 
   renderTable(sorted);
-  renderSpeedChart(sorted);
 }
 
 function setupWebSocket() {
@@ -293,7 +246,6 @@ document.getElementById("filterTuyen").addEventListener("change", filterAndSearc
 document.getElementById("speedUnit").addEventListener("change", () => {
   localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
   renderTable(originalData);
-  renderSpeedChart(originalData);
 });
 document.querySelectorAll("#trainTable th").forEach(th => {
   th.addEventListener("click", () => sortBy(th.dataset.key));
