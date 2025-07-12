@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FPT Train Log - Speed Over Time</title>
+<title>FPT Train Log</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -58,8 +58,8 @@
     background: #fff4eb;
   }
 </style>
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
 
@@ -67,8 +67,12 @@
 
 <div class="controls">
   <input type="text" id="searchInput" placeholder="Search..." />
-  <select id="filterTenTau"><option value="">All Tên Tàu</option></select>
-  <select id="filterTuyen"><option value="">All Tuyến</option></select>
+  <select id="filterTenTau">
+    <option value="">All Tên Tàu</option>
+  </select>
+  <select id="filterTuyen">
+    <option value="">All Tuyến</option>
+  </select>
   <select id="speedUnit">
     <option value="kmh">Vận Tốc: km/giờ</option>
     <option value="mh">Vận Tốc: m/giờ</option>
@@ -94,8 +98,8 @@
 </table>
 
 <div style="margin-top: 40px;">
-  <h2 style="text-align:center; color:#FF6600;">Speed Over Time</h2>
-  <canvas id="speedChart" height="120"></canvas>
+  <h2 style="text-align:center; color:#FF6600;">Average Speed by Train</h2>
+  <canvas id="speedChart" height="100"></canvas>
 </div>
 
 <script>
@@ -103,14 +107,6 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpg
 let originalData = [];
 let currentSort = { key: "", asc: true };
 let ws = null;
-
-function combineDateAndTime(dateStr, timeStr) {
-  const date = new Date(dateStr);
-  const time = new Date(`1970-01-01T${timeStr}`);
-  if (isNaN(date.getTime()) || isNaN(time.getTime())) return null;
-  date.setHours(time.getHours(), time.getMinutes(), time.getSeconds());
-  return date;
-}
 
 function applySavedUnits() {
   const savedSpeedUnit = localStorage.getItem("speedUnit");
@@ -160,12 +156,17 @@ function renderTable(data) {
 
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
-    if (speedUnit === "mh") speed = speed * 1000;
-    else if (speedUnit === "ms") speed = speed * 1000 / 3600;
-    speed = speed.toFixed(2);
 
-    const gioDen = combineDateAndTime(row["Ngày Đến"], row["Giờ Đến"]);
-    const gioRoi = combineDateAndTime(row["Ngày Rời"], row["Giờ Rời"]);
+    if (speedUnit === "kmh") {
+      speed = speed.toFixed(2) + " km/h";
+    } else if (speedUnit === "mh") {
+      speed = (speed * 1000).toFixed(2) + " m/h";
+    } else if (speedUnit === "ms") {
+      speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
+    }
+
+    const gioDen = new Date(row["Ngày Đến"]).toLocaleDateString() + " " + new Date(row["Giờ Đến"]).toLocaleTimeString();
+    const gioRoi = new Date(row["Ngày Rời"]).toLocaleDateString() + " " + new Date(row["Giờ Rời"]).toLocaleTimeString();
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -174,54 +175,48 @@ function renderTable(data) {
       <td>${row["Tuyến"]}</td>
       <td>${row["Trạm"]}</td>
       <td>${speed}</td>
-      <td>${gioDen ? gioDen.toLocaleString() : "Invalid"}</td>
-      <td>${gioRoi ? gioRoi.toLocaleString() : "Invalid"}</td>
+      <td>${gioDen}</td>
+      <td>${gioRoi}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
 function renderSpeedChart(data) {
-  const speedUnit = document.getElementById("speedUnit").value;
-  const datasetsByTrain = {};
-
+  const speedByTrain = {};
   data.forEach(item => {
     const name = item["Tên Tàu"];
-    const date = combineDateAndTime(item["Ngày Đến"], item["Giờ Đến"]);
-    if (!date) return;
-    let speed = Number(item["Vận Tốc"]);
-    if (speedUnit === "mh") speed = speed * 1000;
-    else if (speedUnit === "ms") speed = speed * 1000 / 3600;
-    if (!datasetsByTrain[name]) datasetsByTrain[name] = [];
-    datasetsByTrain[name].push({ x: date, y: speed });
+    if (!speedByTrain[name]) speedByTrain[name] = [];
+    speedByTrain[name].push(Number(item["Vận Tốc"]));
   });
 
-  const colors = ["#FF6600","#007BFF","#28A745","#6F42C1","#E83E8C","#20C997","#FD7E14","#6610F2"];
-  const datasets = Object.keys(datasetsByTrain).map((name, i) => ({
-    label: name,
-    data: datasetsByTrain[name].sort((a,b)=>a.x-b.x),
-    borderColor: colors[i % colors.length],
-    fill: false,
-    tension: 0.2
-  }));
+  const labels = Object.keys(speedByTrain);
+  const averages = labels.map(name => {
+    const speeds = speedByTrain[name];
+    const avg = speeds.reduce((a,b)=>a+b,0)/speeds.length;
+    return avg.toFixed(2);
+  });
 
-  if (window.speedChartInstance) window.speedChartInstance.destroy();
+  if (window.speedChartInstance) {
+    window.speedChartInstance.destroy();
+  }
+
   const ctx = document.getElementById('speedChart').getContext('2d');
   window.speedChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: { datasets },
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Average Speed (km/h)',
+        data: averages,
+        backgroundColor: '#FF6600'
+      }]
+    },
     options: {
       responsive: true,
-      parsing: false,
       scales: {
-        x: { 
-          type: 'time',
-          time: { tooltipFormat: 'dd/MM/yyyy HH:mm:ss', unit: 'minute' },
-          title: { display: true, text: 'Thời gian' }
-        },
-        y: { beginAtZero: true, title: { display: true, text: 'Vận tốc' } }
-      },
-      plugins: { legend: { position: 'bottom' } }
+        y: { beginAtZero: true }
+      }
     }
   });
 }
@@ -244,6 +239,54 @@ function filterAndSearch() {
   renderSpeedChart(filtered);
 }
 
+function sortBy(key) {
+  const asc = currentSort.key === key ? !currentSort.asc : true;
+  currentSort = { key, asc };
+
+  const sorted = [...originalData].sort((a, b) => {
+    let valA = a[key];
+    let valB = b[key];
+    if (!isNaN(valA) && !isNaN(valB)) {
+      valA = Number(valA);
+      valB = Number(valB);
+    }
+    return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+  });
+
+  renderTable(sorted);
+  renderSpeedChart(sorted);
+}
+
+function setupWebSocket() {
+  ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
+  ws.onopen = () => console.log("WebSocket connected.");
+  ws.onmessage = (event) => {
+    console.log("WebSocket message received:", event.data);
+    if (event.data === "front-end update") {
+      fetchDataAndRender();
+    }
+  };
+  ws.onclose = () => {
+    console.warn("WebSocket disconnected. Reconnecting in 5s...");
+    setTimeout(setupWebSocket, 5000);
+  };
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+    ws.close();
+  };
+}
+
+document.getElementById("servoClose").addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send("servo close");
+  }
+});
+document.getElementById("servoOpen").addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send("servo open");
+  }
+});
+
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
 document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
 document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
@@ -252,9 +295,15 @@ document.getElementById("speedUnit").addEventListener("change", () => {
   renderTable(originalData);
   renderSpeedChart(originalData);
 });
+document.querySelectorAll("#trainTable th").forEach(th => {
+  th.addEventListener("click", () => sortBy(th.dataset.key));
+});
 
 applySavedUnits();
 fetchDataAndRender();
+setupWebSocket();
+setInterval(fetchDataAndRender, 30000);
 </script>
+
 </body>
 </html>
