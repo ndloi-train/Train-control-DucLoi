@@ -7,16 +7,32 @@
 <style>
   body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    margin: 0;
     background: #f9f9f9;
     color: #333;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FF6600;
+    padding: 10px 20px;
+    color: #fff;
+  }
+  header img {
+    height: 50px;
+  }
+  header .banner {
+    font-size: 20px;
+    font-weight: bold;
   }
   h1 {
     text-align: center;
     color: #FF6600;
+    margin-top: 20px;
   }
   .controls {
-    margin-bottom: 15px;
+    margin: 15px auto;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -43,6 +59,7 @@
     background: #fff;
     border-radius: 4px;
     overflow: hidden;
+    margin-bottom: 20px;
   }
   th, td {
     padding: 8px;
@@ -60,6 +77,11 @@
 </style>
 </head>
 <body>
+
+<header>
+  <img src="https://via.placeholder.com/150x50?text=Logo" alt="Logo">
+  <div class="banner">FPT Railway Monitoring System</div>
+</header>
 
 <h1>FPT Train Log</h1>
 
