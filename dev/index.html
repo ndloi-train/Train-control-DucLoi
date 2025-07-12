@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Test Line Chart</title>
+<title>Test Line Chart with Timestamps</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <canvas id="chart" height="100"></canvas>
 <script>
-// Simulated example data
+// Example data
 const data = [
   {
     "Tên Tàu": "Train A",
@@ -36,22 +36,22 @@ const data = [
   }
 ];
 
+// Prepare datasets
 const datasetsByTrain = {};
 data.forEach(item => {
   const name = item["Tên Tàu"];
   const datetimeStr = `${item["Ngày Đến"]}T${item["Giờ Đến"]}`;
-  const date = new Date(datetimeStr);
-  const timestamp = date.getTime();
+  const unixMillis = new Date(datetimeStr).getTime(); // UNIX timestamp in ms
   const speed = item["Vận Tốc"];
   if (!datasetsByTrain[name]) datasetsByTrain[name] = [];
-  datasetsByTrain[name].push({ x: timestamp, y: speed });
+  datasetsByTrain[name].push({ x: unixMillis, y: speed });
 });
 
 const colors = ["#FF6600", "#007BFF"];
 
 const datasets = Object.keys(datasetsByTrain).map((name, i) => ({
   label: name,
-  data: datasetsByTrain[name].sort((a,b)=>a.x - b.x),
+  data: datasetsByTrain[name].sort((a,b) => a.x - b.x),
   borderColor: colors[i % colors.length],
   fill: false,
   tension: 0.2
@@ -63,12 +63,13 @@ new Chart(ctx, {
   data: { datasets },
   options: {
     responsive: true,
+    parsing: false, // IMPORTANT: because you give raw {x,y}
     scales: {
       x: {
         type: "time",
         time: {
-          // Use default formats
-          tooltipFormat: 'yyyy-MM-dd HH:mm'
+          tooltipFormat: "yyyy-MM-dd HH:mm",
+          unit: "hour"
         },
         title: {
           display: true,
