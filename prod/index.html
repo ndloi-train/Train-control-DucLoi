@@ -58,7 +58,12 @@
     background: #fff4eb;
   }
 </style>
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Luxon -->
+<script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+<!-- Chart.js Luxon Adapter -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
 </head>
 <body>
 
@@ -105,9 +110,9 @@ let ws = null;
 
 function combineDateAndTime(dateStr, timeStr) {
   const date = new Date(dateStr);
-  const time = new Date(timeStr);
+  const time = new Date("1970-01-01T" + timeStr);
   if (isNaN(date.getTime()) || isNaN(time.getTime())) return null;
-  date.setUTCHours(time.getUTCHours(), time.getUTCMinutes(), time.getUTCSeconds());
+  date.setHours(time.getHours(), time.getMinutes(), time.getSeconds());
   return date;
 }
 
@@ -182,32 +187,30 @@ function renderTable(data) {
 
 function renderSpeedChart(data) {
   const speedUnit = document.getElementById("speedUnit").value;
+  const datasetsByTrain = {};
 
-  const grouped = {};
+  // Group by date per train
   data.forEach(item => {
-    const train = item["Tên Tàu"];
+    const name = item["Tên Tàu"];
     const dateStr = item["Ngày Đến"];
+    if (!dateStr) return;
     let speed = Number(item["Vận Tốc"]);
     if (speedUnit === "mh") speed = speed * 1000;
     else if (speedUnit === "ms") speed = speed * 1000 / 3600;
-
-    if (!grouped[train]) grouped[train] = {};
-    if (!grouped[train][dateStr]) grouped[train][dateStr] = { total: 0, count: 0 };
-    grouped[train][dateStr].total += speed;
-    grouped[train][dateStr].count += 1;
+    if (!datasetsByTrain[name]) datasetsByTrain[name] = {};
+    if (!datasetsByTrain[name][dateStr]) datasetsByTrain[name][dateStr] = [];
+    datasetsByTrain[name][dateStr].push(speed);
   });
 
   const colors = ["#FF6600","#007BFF","#28A745","#6F42C1","#E83E8C","#20C997","#FD7E14","#6610F2"];
-  const datasets = Object.keys(grouped).map((train, i) => {
-    const dataPoints = Object.keys(grouped[train])
-      .map(dateStr => ({
-        x: dateStr,
-        y: grouped[train][dateStr].total / grouped[train][dateStr].count
-      }))
-      .sort((a, b) => new Date(a.x) - new Date(b.x));
+  const datasets = Object.keys(datasetsByTrain).map((name, i) => {
+    const entries = Object.entries(datasetsByTrain[name]).map(([date, speeds]) => ({
+      x: date,
+      y: speeds.reduce((a,b)=>a+b,0)/speeds.length
+    })).sort((a,b)=>new Date(a.x)-new Date(b.x));
     return {
-      label: train,
-      data: dataPoints,
+      label: name,
+      data: entries,
       borderColor: colors[i % colors.length],
       fill: false,
       tension: 0.2
@@ -223,13 +226,13 @@ function renderSpeedChart(data) {
       responsive: true,
       parsing: false,
       scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'day', tooltipFormat: 'yyyy-MM-dd' },
+        x: { 
+          type: 'time', 
+          time: { unit: 'day' },
           title: { display: true, text: 'Ngày' }
         },
-        y: {
-          beginAtZero: true,
+        y: { 
+          beginAtZero: true, 
           title: { display: true, text: 'Vận tốc' }
         }
       },
