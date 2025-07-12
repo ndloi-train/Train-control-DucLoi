@@ -2,33 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Chart.js Time Axis Example</title>
+<title>Chart.js Time Scale Example</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Load date-fns adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
-<canvas id="chart" height="120"></canvas>
+<canvas id="chart" height="150"></canvas>
 <script>
-// Minimal example data using ISO strings:
-const datasetsByTrain = {
-  "Train A": [
-    { x: "2025-07-11T08:00:00", y: 55 },
-    { x: "2025-07-11T09:00:00", y: 60 }
-  ],
-  "Train B": [
-    { x: "2025-07-11T08:30:00", y: 45 },
-    { x: "2025-07-11T09:30:00", y: 48 }
-  ]
-};
-
-const colors = ["#FF6600", "#007BFF"];
-const datasets = Object.keys(datasetsByTrain).map((name, i) => ({
-  label: name,
-  data: datasetsByTrain[name],
-  borderColor: colors[i],
-  fill: false
-}));
+// ✅ Clean, guaranteed data
+const datasets = [
+  {
+    label: "Train A",
+    data: [
+      { x: "2025-07-11T08:00:00", y: 55 },
+      { x: "2025-07-11T09:00:00", y: 60 }
+    ],
+    borderColor: "#FF6600",
+    fill: false
+  },
+  {
+    label: "Train B",
+    data: [
+      { x: "2025-07-11T08:30:00", y: 45 },
+      { x: "2025-07-11T09:30:00", y: 48 }
+    ],
+    borderColor: "#007BFF",
+    fill: false
+  }
+];
 
 const ctx = document.getElementById("chart").getContext("2d");
 new Chart(ctx, {
@@ -36,11 +37,12 @@ new Chart(ctx, {
   data: { datasets },
   options: {
     responsive: true,
-    parsing: false,  // Use raw {x, y} objects
+    parsing: false, // Important when using raw {x,y}
     scales: {
       x: {
         type: "time",
-        title: { display: true, text: "Time" }
+        title: { display: true, text: "Time" },
+        time: { tooltipFormat: "yyyy-MM-dd HH:mm" }
       },
       y: {
         beginAtZero: true,
