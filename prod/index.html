@@ -58,12 +58,8 @@
     background: #fff4eb;
   }
 </style>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Luxon -->
-<script src="https://cdn.jsdelivr.net/npm/luxon"></script>
-<!-- Chart.js Luxon Adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
 
@@ -110,7 +106,7 @@ let ws = null;
 
 function combineDateAndTime(dateStr, timeStr) {
   const date = new Date(dateStr);
-  const time = new Date("1970-01-01T" + timeStr);
+  const time = new Date(`1970-01-01T${timeStr}`);
   if (isNaN(date.getTime()) || isNaN(time.getTime())) return null;
   date.setHours(time.getHours(), time.getMinutes(), time.getSeconds());
   return date;
@@ -189,33 +185,25 @@ function renderSpeedChart(data) {
   const speedUnit = document.getElementById("speedUnit").value;
   const datasetsByTrain = {};
 
-  // Group by date per train
   data.forEach(item => {
     const name = item["Tên Tàu"];
-    const dateStr = item["Ngày Đến"];
-    if (!dateStr) return;
+    const date = combineDateAndTime(item["Ngày Đến"], item["Giờ Đến"]);
+    if (!date) return;
     let speed = Number(item["Vận Tốc"]);
     if (speedUnit === "mh") speed = speed * 1000;
     else if (speedUnit === "ms") speed = speed * 1000 / 3600;
-    if (!datasetsByTrain[name]) datasetsByTrain[name] = {};
-    if (!datasetsByTrain[name][dateStr]) datasetsByTrain[name][dateStr] = [];
-    datasetsByTrain[name][dateStr].push(speed);
+    if (!datasetsByTrain[name]) datasetsByTrain[name] = [];
+    datasetsByTrain[name].push({ x: date, y: speed });
   });
 
   const colors = ["#FF6600","#007BFF","#28A745","#6F42C1","#E83E8C","#20C997","#FD7E14","#6610F2"];
-  const datasets = Object.keys(datasetsByTrain).map((name, i) => {
-    const entries = Object.entries(datasetsByTrain[name]).map(([date, speeds]) => ({
-      x: date,
-      y: speeds.reduce((a,b)=>a+b,0)/speeds.length
-    })).sort((a,b)=>new Date(a.x)-new Date(b.x));
-    return {
-      label: name,
-      data: entries,
-      borderColor: colors[i % colors.length],
-      fill: false,
-      tension: 0.2
-    };
-  });
+  const datasets = Object.keys(datasetsByTrain).map((name, i) => ({
+    label: name,
+    data: datasetsByTrain[name].sort((a,b)=>a.x-b.x),
+    borderColor: colors[i % colors.length],
+    fill: false,
+    tension: 0.2
+  }));
 
   if (window.speedChartInstance) window.speedChartInstance.destroy();
   const ctx = document.getElementById('speedChart').getContext('2d');
@@ -227,14 +215,11 @@ function renderSpeedChart(data) {
       parsing: false,
       scales: {
         x: { 
-          type: 'time', 
-          time: { unit: 'day' },
-          title: { display: true, text: 'Ngày' }
+          type: 'time',
+          time: { tooltipFormat: 'dd/MM/yyyy HH:mm:ss', unit: 'minute' },
+          title: { display: true, text: 'Thời gian' }
         },
-        y: { 
-          beginAtZero: true, 
-          title: { display: true, text: 'Vận tốc' }
-        }
+        y: { beginAtZero: true, title: { display: true, text: 'Vận tốc' } }
       },
       plugins: { legend: { position: 'bottom' } }
     }
@@ -259,45 +244,6 @@ function filterAndSearch() {
   renderSpeedChart(filtered);
 }
 
-function sortBy(key) {
-  const asc = currentSort.key === key ? !currentSort.asc : true;
-  currentSort = { key, asc };
-  const sorted = [...originalData].sort((a, b) => {
-    let valA = a[key];
-    let valB = b[key];
-    if (!isNaN(valA) && !isNaN(valB)) {
-      valA = Number(valA);
-      valB = Number(valB);
-    }
-    return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
-  });
-  renderTable(sorted);
-  renderSpeedChart(sorted);
-}
-
-function setupWebSocket() {
-  ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
-  ws.onopen = () => console.log("WebSocket connected.");
-  ws.onmessage = (event) => {
-    console.log("WebSocket message received:", event.data);
-    if (event.data === "front-end update") fetchDataAndRender();
-  };
-  ws.onclose = () => {
-    console.warn("WebSocket disconnected. Reconnecting in 5s...");
-    setTimeout(setupWebSocket, 5000);
-  };
-  ws.onerror = (err) => {
-    console.error("WebSocket error:", err);
-    ws.close();
-  };
-}
-
-document.getElementById("servoClose").addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send("servo close");
-});
-document.getElementById("servoOpen").addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send("servo open");
-});
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
 document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
 document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
@@ -306,14 +252,9 @@ document.getElementById("speedUnit").addEventListener("change", () => {
   renderTable(originalData);
   renderSpeedChart(originalData);
 });
-document.querySelectorAll("#trainTable th").forEach(th => {
-  th.addEventListener("click", () => sortBy(th.dataset.key));
-});
 
 applySavedUnits();
 fetchDataAndRender();
-setupWebSocket();
-setInterval(fetchDataAndRender, 30000);
 </script>
 </body>
 </html>
