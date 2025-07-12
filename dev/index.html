@@ -2,32 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Minimal Line Chart Example</title>
+<title>Chart.js Time Axis Example</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Load date-fns adapter -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 <body>
 <canvas id="chart" height="120"></canvas>
 <script>
-const datasets = [
-  {
-    label: "Train A",
-    data: [
-      { x: 10, y: 55 }, // 2024-07-11 08:00
-      { x: 20, y: 60 }  // 2024-07-11 09:00
-    ],
-    borderColor: "#FF6600",
-    fill: false
-  },
-  {
-    label: "Train B",
-    data: [
-      { x: 15, y: 45 }, // 2024-07-11 08:30
-      { x: 30, y: 48 }  // 2024-07-11 09:30
-    ],
-    borderColor: "#007BFF",
-    fill: false
-  }
-];
+// Minimal example data using ISO strings:
+const datasetsByTrain = {
+  "Train A": [
+    { x: "2025-07-11T08:00:00", y: 55 },
+    { x: "2025-07-11T09:00:00", y: 60 }
+  ],
+  "Train B": [
+    { x: "2025-07-11T08:30:00", y: 45 },
+    { x: "2025-07-11T09:30:00", y: 48 }
+  ]
+};
+
+const colors = ["#FF6600", "#007BFF"];
+const datasets = Object.keys(datasetsByTrain).map((name, i) => ({
+  label: name,
+  data: datasetsByTrain[name],
+  borderColor: colors[i],
+  fill: false
+}));
 
 const ctx = document.getElementById("chart").getContext("2d");
 new Chart(ctx, {
@@ -35,25 +36,15 @@ new Chart(ctx, {
   data: { datasets },
   options: {
     responsive: true,
-    parsing: false, // IMPORTANT when using raw x/y data
+    parsing: false,  // Use raw {x, y} objects
     scales: {
       x: {
         type: "time",
-        time: {
-          unit: "hour",
-          tooltipFormat: "yyyy-MM-dd HH:mm"
-        },
-        title: {
-          display: true,
-          text: "Time"
-        }
+        title: { display: true, text: "Time" }
       },
       y: {
         beginAtZero: true,
-        title: {
-          display: true,
-          text: "Speed (km/h)"
-        }
+        title: { display: true, text: "Speed (km/h)" }
       }
     }
   }
