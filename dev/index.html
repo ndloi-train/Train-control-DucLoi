@@ -41,9 +41,10 @@ data.forEach(item => {
   const name = item["Tên Tàu"];
   const datetimeStr = `${item["Ngày Đến"]}T${item["Giờ Đến"]}`;
   const date = new Date(datetimeStr);
+  const timestamp = date.getTime();
   const speed = item["Vận Tốc"];
   if (!datasetsByTrain[name]) datasetsByTrain[name] = [];
-  datasetsByTrain[name].push({ x: date, y: speed });
+  datasetsByTrain[name].push({ x: timestamp, y: speed });
 });
 
 const colors = ["#FF6600", "#007BFF"];
@@ -65,12 +66,21 @@ new Chart(ctx, {
     scales: {
       x: {
         type: "time",
-        time: { tooltipFormat: "dd/MM/yyyy HH:mm" },
-        title: { display: true, text: "Time" }
+        time: {
+          // Use default formats
+          tooltipFormat: 'yyyy-MM-dd HH:mm'
+        },
+        title: {
+          display: true,
+          text: "Time"
+        }
       },
       y: {
         beginAtZero: true,
-        title: { display: true, text: "Speed (km/h)" }
+        title: {
+          display: true,
+          text: "Speed (km/h)"
+        }
       }
     }
   }
