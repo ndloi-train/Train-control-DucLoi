@@ -14,7 +14,7 @@
   header {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     background: #ffffff;
     padding: 10px 20px;
     color: #333;
@@ -26,6 +26,25 @@
   header .banner {
     font-size: 20px;
     font-weight: bold;
+  }
+  .nav-bar {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    background-color: #FF6600;
+    padding: 10px 0;
+  }
+  .nav-bar button {
+    background: #ffffff;
+    color: #FF6600;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .nav-bar button:hover {
+    background: #f0f0f0;
   }
   h1 {
     text-align: center;
@@ -85,6 +104,12 @@
   <img src="./FPT_Train_logo.svg_2.png" alt="Logo">
   <div class="banner">Hệ Thống Giám Sát Đường Tàu FPT</div>
 </header>
+
+<div class="nav-bar">
+  <button>Hồ sơ tàu</button>
+  <button>Phân tích dữ liệu</button>
+  <button>Bảng Điều Khiển</button>
+</div>
 
 <h1>Hồ Sơ Tàu</h1>
 
@@ -180,7 +205,6 @@ function renderTable(data) {
 
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
-
     if (speedUnit === "kmh") {
       speed = speed.toFixed(2) + " km/h";
     } else if (speedUnit === "mh") {
@@ -226,7 +250,6 @@ function filterAndSearch() {
     );
     const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
     const matchTuyen = !tuyenFilter || item["Tuyến"] === tuyenFilter;
-
     let matchDateTime = true;
 
     if (dateFromValue || dateToValue || timeFromValue || timeToValue) {
@@ -236,7 +259,6 @@ function filterAndSearch() {
         date.getFullYear(), date.getMonth(), date.getDate(),
         time.getHours(), time.getMinutes(), time.getSeconds()
       );
-
       if (dateFromValue) {
         const dateFrom = new Date(dateFromValue);
         if (combinedDateTime < dateFrom) matchDateTime = false;
@@ -259,7 +281,6 @@ function filterAndSearch() {
         }
       }
     }
-
     return matchSearch && matchTenTau && matchTuyen && matchDateTime;
   });
 
