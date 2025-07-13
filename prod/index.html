@@ -101,6 +101,10 @@
     <option value="mh">Vận Tốc: m/giờ</option>
     <option value="ms">Vận Tốc: m/giây</option>
   </select>
+  <input type="date" id="dateFrom" placeholder="Ngày Đến từ" />
+  <input type="date" id="dateTo" placeholder="Ngày Đến đến" />
+  <input type="time" id="timeFrom" placeholder="Giờ Đến từ" />
+  <input type="time" id="timeTo" placeholder="Giờ Đến đến" />
   <button id="servoClose">Servo Close</button>
   <button id="servoOpen">Servo Open</button>
 </div>
@@ -211,6 +215,10 @@ function filterAndSearch() {
   const searchValue = document.getElementById("searchInput").value.toLowerCase();
   const tenTauFilter = document.getElementById("filterTenTau").value;
   const tuyenFilter = document.getElementById("filterTuyen").value;
+  const dateFromValue = document.getElementById("dateFrom").value;
+  const dateToValue = document.getElementById("dateTo").value;
+  const timeFromValue = document.getElementById("timeFrom").value;
+  const timeToValue = document.getElementById("timeTo").value;
 
   const filtered = originalData.filter(item => {
     const matchSearch = Object.values(item).some(val =>
@@ -218,7 +226,41 @@ function filterAndSearch() {
     );
     const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
     const matchTuyen = !tuyenFilter || item["Tuyến"] === tuyenFilter;
-    return matchSearch && matchTenTau && matchTuyen;
+
+    let matchDateTime = true;
+
+    if (dateFromValue || dateToValue || timeFromValue || timeToValue) {
+      const date = new Date(item["Ngày Đến"]);
+      const time = new Date(item["Giờ Đến"]);
+      const combinedDateTime = new Date(
+        date.getFullYear(), date.getMonth(), date.getDate(),
+        time.getHours(), time.getMinutes(), time.getSeconds()
+      );
+
+      if (dateFromValue) {
+        const dateFrom = new Date(dateFromValue);
+        if (combinedDateTime < dateFrom) matchDateTime = false;
+      }
+      if (dateToValue) {
+        const dateTo = new Date(dateToValue);
+        dateTo.setHours(23,59,59,999);
+        if (combinedDateTime > dateTo) matchDateTime = false;
+      }
+      if (timeFromValue) {
+        const [h,m] = timeFromValue.split(":");
+        if (combinedDateTime.getHours() < +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() < +m)) {
+          matchDateTime = false;
+        }
+      }
+      if (timeToValue) {
+        const [h,m] = timeToValue.split(":");
+        if (combinedDateTime.getHours() > +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() > +m)) {
+          matchDateTime = false;
+        }
+      }
+    }
+
+    return matchSearch && matchTenTau && matchTuyen && matchDateTime;
   });
 
   renderTable(filtered);
@@ -278,6 +320,10 @@ document.getElementById("speedUnit").addEventListener("change", () => {
   localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
   renderTable(originalData);
 });
+document.getElementById("dateFrom").addEventListener("change", filterAndSearch);
+document.getElementById("dateTo").addEventListener("change", filterAndSearch);
+document.getElementById("timeFrom").addEventListener("change", filterAndSearch);
+document.getElementById("timeTo").addEventListener("change", filterAndSearch);
 document.querySelectorAll("#trainTable th").forEach(th => {
   th.addEventListener("click", () => sortBy(th.dataset.key));
 });
