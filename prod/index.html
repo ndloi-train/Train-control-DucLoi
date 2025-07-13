@@ -111,6 +111,8 @@
 <!-- jsPDF and html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -172,7 +174,16 @@
 
 <div id="sectionPhanTich" style="display:none;">
   <h1>Phân Tích Dữ Liệu</h1>
-  <p style="text-align:center;">Nội dung phân tích dữ liệu sẽ hiển thị ở đây.</p>
+  <div style="width:90%; margin:auto;">
+    <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
+    <canvas id="avgSpeedChart" height="150"></canvas>
+
+    <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
+    <canvas id="tripCountChart" height="150"></canvas>
+
+    <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày Mỗi Tàu</h3>
+    <canvas id="speedPerDayChart" height="250"></canvas>
+  </div>
 </div>
 
 <div id="sectionBangDieuKhien" style="display:none;">
@@ -226,6 +237,7 @@ async function fetchDataAndRender() {
       currentFilteredData = originalData;
       populateFilters();
       renderTable(originalData);
+      renderCharts();
     }
   } catch (err) {
     console.error("Error fetching train data:", err);
@@ -442,6 +454,125 @@ document.querySelectorAll("#trainTable th").forEach(th => {
 });
 document.getElementById("exportExcel").addEventListener("click", exportExcel);
 document.getElementById("exportPDF").addEventListener("click", exportPDF);
+
+let avgSpeedChartInstance = null;
+let tripCountChartInstance = null;
+let speedPerDayChartInstance = null;
+
+function renderCharts() {
+  // Destroy old charts
+  if (avgSpeedChartInstance) avgSpeedChartInstance.destroy();
+  if (tripCountChartInstance) tripCountChartInstance.destroy();
+  if (speedPerDayChartInstance) speedPerDayChartInstance.destroy();
+
+  // --- 1. Average speed per train ---
+  const trainSpeeds = {};
+  const trainCounts = {};
+
+  originalData.forEach(item => {
+    const train = item["Tên Tàu"];
+    const speed = Number(item["Vận Tốc"]);
+    trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
+    trainCounts[train] = (trainCounts[train] || 0) + 1;
+  });
+
+  const trainNames = Object.keys(trainSpeeds);
+  const avgSpeeds = trainNames.map(name => (trainSpeeds[name]/trainCounts[name]).toFixed(2));
+
+  const ctxAvgSpeed = document.getElementById('avgSpeedChart').getContext('2d');
+  avgSpeedChartInstance = new Chart(ctxAvgSpeed, {
+    type: 'bar',
+    data: {
+      labels: trainNames,
+      datasets: [{
+        label: 'Tốc Độ Trung Bình (km/h)',
+        data: avgSpeeds,
+        backgroundColor: '#FF6600'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // --- 2. Trip count per train ---
+  const tripCounts = trainCounts;
+
+  const ctxTripCount = document.getElementById('tripCountChart').getContext('2d');
+  tripCountChartInstance = new Chart(ctxTripCount, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(tripCounts),
+      datasets: [{
+        label: 'Số Chuyến',
+        data: Object.values(tripCounts),
+        backgroundColor: '#FFD580'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // --- 3. Average speed per day per train ---
+  const trainDateSpeedMap = {};
+
+  originalData.forEach(item => {
+    const train = item["Tên Tàu"];
+    const date = new Date(item["Ngày Đến"]).toISOString().split("T")[0];
+    const speed = Number(item["Vận Tốc"]);
+    const key = train + "_" + date;
+    if (!trainDateSpeedMap[key]) {
+      trainDateSpeedMap[key] = { sum: 0, count: 0 };
+    }
+    trainDateSpeedMap[key].sum += speed;
+    trainDateSpeedMap[key].count += 1;
+  });
+
+  // Build datasets per train
+  const trainDateGroups = {};
+  Object.keys(trainDateSpeedMap).forEach(key => {
+    const [train, date] = key.split("_");
+    if (!trainDateGroups[train]) trainDateGroups[train] = {};
+    trainDateGroups[train][date] = (trainDateSpeedMap[key].sum / trainDateSpeedMap[key].count).toFixed(2);
+  });
+
+  // Collect all unique dates
+  const allDatesSet = new Set();
+  Object.values(trainDateGroups).forEach(obj => {
+    Object.keys(obj).forEach(date => allDatesSet.add(date));
+  });
+  const allDates = Array.from(allDatesSet).sort();
+
+  const datasets = Object.keys(trainDateGroups).map(train => ({
+    label: train,
+    data: allDates.map(date => trainDateGroups[train][date] || null),
+    fill: false,
+    borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+    tension: 0.1
+  }));
+
+  const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
+  speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
+    type: 'line',
+    data: {
+      labels: allDates,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
 
 applySavedUnits();
 fetchDataAndRender();
