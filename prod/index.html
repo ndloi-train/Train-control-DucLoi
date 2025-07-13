@@ -101,6 +101,11 @@
     background: #fff4eb;
   }
 </style>
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- jsPDF and html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -136,6 +141,8 @@
   <input type="time" id="timeTo" />
   <button id="servoClose">Servo Close</button>
   <button id="servoOpen">Servo Open</button>
+  <button id="exportExcel">Export Excel</button>
+  <button id="exportPDF">Export PDF</button>
 </div>
 
 <table id="trainTable">
@@ -158,6 +165,7 @@
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
 let originalData = [];
+let currentFilteredData = [];
 let currentSort = { key: "", asc: true };
 let ws = null;
 
@@ -172,6 +180,7 @@ async function fetchDataAndRender() {
     const json = await res.json();
     if (json.status === "success") {
       originalData = json.data;
+      currentFilteredData = originalData;
       populateFilters();
       renderTable(originalData);
     }
@@ -202,6 +211,7 @@ function populateFilters() {
 }
 
 function renderTable(data) {
+  currentFilteredData = data;
   const tbody = document.querySelector("#trainTable tbody");
   tbody.innerHTML = "";
   const speedUnit = document.getElementById("speedUnit").value;
@@ -294,7 +304,7 @@ function sortBy(key) {
   const asc = currentSort.key === key ? !currentSort.asc : true;
   currentSort = { key, asc };
 
-  const sorted = [...originalData].sort((a, b) => {
+  const sorted = [...currentFilteredData].sort((a, b) => {
     let valA = a[key];
     let valB = b[key];
     if (!isNaN(valA) && !isNaN(valB)) {
@@ -326,6 +336,42 @@ function setupWebSocket() {
   };
 }
 
+function exportExcel() {
+  const ws_data = [
+    ["STT","Tên Tàu","Tuyến","Trạm","Vận Tốc","Ngày Đến","Giờ Đến","Ngày Rời","Giờ Rời","Trạng Thái"],
+    ...currentFilteredData.map(row => [
+      row["STT"],
+      row["Tên Tàu"],
+      row["Tuyến"],
+      row["Trạm"],
+      row["Vận Tốc"],
+      row["Ngày Đến"],
+      row["Giờ Đến"],
+      row["Ngày Rời"],
+      row["Giờ Rời"],
+      row["Trạng Thái"]
+    ])
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, "Data");
+  XLSX.writeFile(wb, "TrainData.xlsx");
+}
+
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('l', 'pt', 'a4');
+  const table = document.querySelector("#trainTable");
+  await html2canvas(table).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const imgProps= pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save("TrainData.pdf");
+  });
+}
+
 document.getElementById("servoClose").addEventListener("click", () => {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send("servo close");
@@ -342,7 +388,7 @@ document.getElementById("filterTenTau").addEventListener("change", filterAndSear
 document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
 document.getElementById("speedUnit").addEventListener("change", () => {
   localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
-  renderTable(originalData);
+  renderTable(currentFilteredData);
 });
 document.getElementById("dateFrom").addEventListener("change", filterAndSearch);
 document.getElementById("dateTo").addEventListener("change", filterAndSearch);
@@ -351,6 +397,8 @@ document.getElementById("timeTo").addEventListener("change", filterAndSearch);
 document.querySelectorAll("#trainTable th").forEach(th => {
   th.addEventListener("click", () => sortBy(th.dataset.key));
 });
+document.getElementById("exportExcel").addEventListener("click", exportExcel);
+document.getElementById("exportPDF").addEventListener("click", exportPDF);
 
 applySavedUnits();
 fetchDataAndRender();
