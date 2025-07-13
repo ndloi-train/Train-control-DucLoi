@@ -50,6 +50,11 @@
     background: #e6e6e6;
     border-color: #999;
   }
+  .nav-bar button.active-nav {
+    background: #FF6600;
+    color: #fff;
+    border-color: #cc5200;
+  }
   h1 {
     text-align: center;
     color: #ffffff;
@@ -120,48 +125,91 @@
   <button>Bảng Điều Khiển</button>
 </div>
 
-<h1>Hồ Sơ Tàu</h1>
+<div id="sectionHoSoTau">
+  <h1>Hồ Sơ Tàu</h1>
 
-<div class="controls">
-  <input type="text" id="searchInput" placeholder="Search..." />
-  <select id="filterTenTau">
-    <option value="">Tất Cả Tên Tàu</option>
-  </select>
-  <select id="filterTuyen">
-    <option value="">Tất Cả Tuyến</option>
-  </select>
-  <select id="speedUnit">
-    <option value="kmh">Vận Tốc: km/giờ</option>
-    <option value="mh">Vận Tốc: m/giờ</option>
-    <option value="ms">Vận Tốc: m/giây</option>
-  </select>
-  <input type="date" id="dateFrom" />
-  <input type="date" id="dateTo" />
-  <input type="time" id="timeFrom" />
-  <input type="time" id="timeTo" />
-  <button id="servoClose">Servo Close</button>
-  <button id="servoOpen">Servo Open</button>
-  <button id="exportExcel">Export Excel</button>
-  <button id="exportPDF">Export PDF</button>
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search..." />
+    <select id="filterTenTau">
+      <option value="">Tất Cả Tên Tàu</option>
+    </select>
+    <select id="filterTuyen">
+      <option value="">Tất Cả Tuyến</option>
+    </select>
+    <select id="speedUnit">
+      <option value="kmh">Vận Tốc: km/giờ</option>
+      <option value="mh">Vận Tốc: m/giờ</option>
+      <option value="ms">Vận Tốc: m/giây</option>
+    </select>
+    <input type="date" id="dateFrom" />
+    <input type="date" id="dateTo" />
+    <input type="time" id="timeFrom" />
+    <input type="time" id="timeTo" />
+    <button id="servoClose">Servo Close</button>
+    <button id="servoOpen">Servo Open</button>
+    <button id="exportExcel">Export Excel</button>
+    <button id="exportPDF">Export PDF</button>
+  </div>
+
+  <table id="trainTable">
+    <thead>
+      <tr>
+        <th data-key="STT">STT</th>
+        <th data-key="Tên Tàu">Tên Tàu</th>
+        <th data-key="Tuyến">Tuyến</th>
+        <th data-key="Trạm">Trạm</th>
+        <th data-key="Vận Tốc">Vận Tốc</th>
+        <th>Ngày Đến</th>
+        <th>Giờ Đến</th>
+        <th>Ngày Rời</th>
+        <th>Giờ Rời</th>
+        <th data-key="Trạng Thái">Trạng Thái</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
-<table id="trainTable">
-  <thead>
-    <tr>
-      <th data-key="STT">STT</th>
-      <th data-key="Tên Tàu">Tên Tàu</th>
-      <th data-key="Tuyến">Tuyến</th>
-      <th data-key="Trạm">Trạm</th>
-      <th data-key="Vận Tốc">Vận Tốc</th>
-      <th>Ngày Đến</th>
-      <th>Giờ Đến</th>
-      <th>Ngày Rời</th>
-      <th>Giờ Rời</th>
-      <th data-key="Trạng Thái">Trạng Thái</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<div id="sectionPhanTich" style="display:none;">
+  <h1>Phân Tích Dữ Liệu</h1>
+  <p style="text-align:center;">Nội dung phân tích dữ liệu sẽ hiển thị ở đây.</p>
+</div>
+
+<div id="sectionBangDieuKhien" style="display:none;">
+  <h1>Bảng Điều Khiển</h1>
+  <p style="text-align:center;">Nội dung bảng điều khiển sẽ hiển thị ở đây.</p>
+</div>
+
+<script>
+/* ... all your original script here ... */
+
+const navButtons = document.querySelectorAll(".nav-bar button");
+const sections = {
+  "Hồ sơ tàu": "sectionHoSoTau",
+  "Phân tích dữ liệu": "sectionPhanTich",
+  "Bảng Điều Khiển": "sectionBangDieuKhien"
+};
+
+navButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    Object.values(sections).forEach(id => {
+      document.getElementById(id).style.display = "none";
+    });
+    const sectionId = sections[button.textContent.trim()];
+    if (sectionId) {
+      document.getElementById(sectionId).style.display = "block";
+    }
+    navButtons.forEach(btn => btn.classList.remove("active-nav"));
+    button.classList.add("active-nav");
+  });
+});
+
+/* keep your other script code unchanged below this point */
+</script>
+
+</body>
+</html>
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
 let originalData = [];
@@ -371,6 +419,27 @@ async function exportPDF() {
     pdf.save("TrainData.pdf");
   });
 }
+
+const navButtons = document.querySelectorAll(".nav-bar button");
+const sections = {
+  "Hồ sơ tàu": "sectionHoSoTau",
+  "Phân tích dữ liệu": "sectionPhanTich",
+  "Bảng Điều Khiển": "sectionBangDieuKhien"
+};
+
+navButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    Object.values(sections).forEach(id => {
+      document.getElementById(id).style.display = "none";
+    });
+    const sectionId = sections[button.textContent.trim()];
+    if (sectionId) {
+      document.getElementById(sectionId).style.display = "block";
+    }
+    navButtons.forEach(btn => btn.classList.remove("active-nav"));
+    button.classList.add("active-nav");
+  });
+});
 
 document.getElementById("servoClose").addEventListener("click", () => {
   if (ws && ws.readyState === WebSocket.OPEN) {
