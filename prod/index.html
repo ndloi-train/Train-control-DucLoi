@@ -420,27 +420,6 @@ async function exportPDF() {
   });
 }
 
-const navButtons = document.querySelectorAll(".nav-bar button");
-const sections = {
-  "Hồ sơ tàu": "sectionHoSoTau",
-  "Phân tích dữ liệu": "sectionPhanTich",
-  "Bảng Điều Khiển": "sectionBangDieuKhien"
-};
-
-navButtons.forEach(button => {
-  button.addEventListener("click", () => {
-    Object.values(sections).forEach(id => {
-      document.getElementById(id).style.display = "none";
-    });
-    const sectionId = sections[button.textContent.trim()];
-    if (sectionId) {
-      document.getElementById(sectionId).style.display = "block";
-    }
-    navButtons.forEach(btn => btn.classList.remove("active-nav"));
-    button.classList.add("active-nav");
-  });
-});
-
 document.getElementById("servoClose").addEventListener("click", () => {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send("servo close");
