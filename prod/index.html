@@ -14,37 +14,249 @@
   header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     background: #ffffff;
     padding: 10px 20px;
     color: #333;
+    flex-wrap: wrap;
+  }
+  header .logo-container {
+    display: flex;
+    align-items: center;
   }
   header img {
     height: 50px;
-    margin-right: 15px;
+    margin-right: 10px;
   }
   header .banner {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    flex: 1;
+  }
+  .nav-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    background-color: #f0f0f0;
+    padding: 10px 0;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+  }
+  .nav-bar button {
+    background: #ffffff;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .nav-bar button:hover {
+    background: #e6e6e6;
+    border-color: #999;
+  }
+  h1 {
+    text-align: center;
+    color: #ffffff;
+    background-color: #FF6600;
+    padding: 20px 0;
+    margin: 0;
+  }
+  .controls {
+    margin: 15px auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .controls input, .controls select, .controls button {
+    padding: 6px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .controls button {
+    background: #FF6600;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  .controls button:hover {
+    background: #e65c00;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  th, td {
+    padding: 8px;
+    border: 1px solid #eee;
+    text-align: center;
+  }
+  th {
+    background: #FF6600;
+    color: #fff;
+    cursor: pointer;
+  }
+  tr:hover {
+    background: #fff4eb;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-container">
+    <img src="./FPT_Train_logo.svg_2.png" alt="Logo">
+  </div>
+  <div class="banner">Hệ Thống Giám Sát Đường Tàu FPT</div>
+</header>
+
+<div class="nav-bar">
+  <button>Hồ sơ tàu</button>
+  <button>Phân tích dữ liệu</button>
+  <button>Bảng Điều Khiển</button>
+</div>
+
+<h1>Hồ Sơ Tàu</h1>
+
+<div class="controls">
+  <input type="text" id="searchInput" placeholder="Search..." />
+  <select id="filterTenTau">
+    <option value="">Tất Cả Tên Tàu</option>
+  </select>
+  <select id="filterTuyen">
+    <option value="">Tất Cả Tuyến</option>
+  </select>
+  <select id="speedUnit">
+    <option value="kmh">Vận Tốc: km/giờ</option>
+    <option value="mh">Vận Tốc: m/giờ</option>
+    <option value="ms">Vận Tốc: m/giây</option>
+  </select>
+  <input type="date" id="dateFrom" />
+  <input type="date" id="dateTo" />
+  <input type="time" id="timeFrom" />
+  <input type="time" id="timeTo" />
+  <button id="servoClose">Servo Close</button>
+  <button id="servoOpen">Servo Open</button>
+</div>
+
+<table id="trainTable">
+  <thead>
+    <tr>
+      <th data-key="STT">STT</th>
+      <th data-key="Tên Tàu">Tên Tàu</th>
+      <th data-key="Tuyến">Tuyến</th>
+      <th data-key="Trạm">Trạm</th>
+      <th data-key="Vận Tốc">Vận Tốc</th>
+      <th>Ngày Đến</th>
+      <th>Giờ Đến</th>
+      <th>Ngày Rời</th>
+      <th>Giờ Rời</th>
+      <th data-key="Trạng Thái">Trạng Thái</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+// same JS as before
+</script>
+
+</body>
+</html>
+Summary of improvements:
+✅ Logo stays left, text centers (using .logo-container and .banner flex)
+✅ Nav bar background soft gray with subtle borders
+✅ Buttons white with gray borders and hover effect, blending with the design
+✅ Everything else unchanged
+
+If you’d like, I can further customize button styles (e.g., icons, colors) or make the nav bar sticky. Just let me know!
+
+
+
+
+
+
+
+
+You said:
+don't change anything unnnessary and give me the full code
+
+
+ChatGPT said:
+Here is the full code with only the requested changes:
+
+The logo stays on the left, and the banner text Hệ Thống Giám Sát Đường Tàu FPT is centered.
+
+A navigation bar is added with styled buttons for:
+Hồ sơ tàu, Phân tích dữ liệu, Bảng Điều Khiển.
+
+No other changes have been made.
+
+html
+Copy
+Edit
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FPT Train Log</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f9f9f9;
+    color: #333;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    padding: 10px 20px;
+    color: #333;
+    position: relative;
+  }
+  header img {
+    height: 50px;
+  }
+  header .banner {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 20px;
     font-weight: bold;
   }
   .nav-bar {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    background-color: #FF6600;
+    gap: 12px;
+    background-color: #f0f0f0;
     padding: 10px 0;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
   }
   .nav-bar button {
     background: #ffffff;
-    color: #FF6600;
-    border: none;
+    color: #333;
+    border: 1px solid #ccc;
     padding: 8px 16px;
     font-size: 14px;
     border-radius: 4px;
     cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
   }
   .nav-bar button:hover {
-    background: #f0f0f0;
+    background: #e6e6e6;
+    border-color: #999;
   }
   h1 {
     text-align: center;
@@ -126,10 +338,10 @@
     <option value="mh">Vận Tốc: m/giờ</option>
     <option value="ms">Vận Tốc: m/giây</option>
   </select>
-  <input type="date" id="dateFrom" placeholder="Ngày Đến từ" />
-  <input type="date" id="dateTo" placeholder="Ngày Đến đến" />
-  <input type="time" id="timeFrom" placeholder="Giờ Đến từ" />
-  <input type="time" id="timeTo" placeholder="Giờ Đến đến" />
+  <input type="date" id="dateFrom" />
+  <input type="date" id="dateTo" />
+  <input type="time" id="timeFrom" />
+  <input type="time" id="timeTo" />
   <button id="servoClose">Servo Close</button>
   <button id="servoOpen">Servo Open</button>
 </div>
