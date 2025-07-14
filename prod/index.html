@@ -279,6 +279,11 @@ async function fetchDataAndRender() {
 function populateFilters() {
   const tenTauSelect = document.getElementById("filterTenTau");
   const tuyenSelect = document.getElementById("filterTuyen");
+
+  // Save the currently selected values
+  const savedTenTau = tenTauSelect.value;
+  const savedTuyen = tuyenSelect.value;
+
   const tenTauSet = new Set();
   const tuyenSet = new Set();
 
@@ -287,6 +292,7 @@ function populateFilters() {
     tuyenSet.add(item["Tuyến"]);
   });
 
+  // Rebuild options
   tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
   tuyenSelect.innerHTML = `<option value="">All Tuyến</option>`;
   tenTauSet.forEach(val => {
@@ -295,6 +301,10 @@ function populateFilters() {
   tuyenSet.forEach(val => {
     tuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
   });
+
+  // Restore the saved selections
+  tenTauSelect.value = savedTenTau;
+  tuyenSelect.value = savedTuyen;
 }
 
 function renderTable(data) {
