@@ -253,6 +253,13 @@ function applySavedUnits() {
   if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
 }
 
+function reapplyFiltersAndSort() {
+  filterAndSearch();
+  if (currentSort.key) {
+    sortBy(currentSort.key);
+  }
+}
+  
 async function fetchDataAndRender() {
   try {
     const res = await fetch(GAS_URL + "?t=" + Date.now());
@@ -261,7 +268,7 @@ async function fetchDataAndRender() {
       originalData = json.data;
       currentFilteredData = originalData;
       populateFilters();
-      renderTable(originalData);
+      reapplyFiltersAndSort();
       renderCharts();
     }
   } catch (err) {
@@ -483,6 +490,8 @@ document.getElementById("exportPDF").addEventListener("click", exportPDF);
 let avgSpeedChartInstance = null;
 let tripCountChartInstance = null;
 let speedPerDayChartInstance = null;
+  
+const trainColorMap = {};
 
 function renderCharts() {
   // Destroy old charts
@@ -575,13 +584,18 @@ function renderCharts() {
   });
   const allDates = Array.from(allDatesSet).sort();
 
-  const datasets = Object.keys(trainDateGroups).map(train => ({
-    label: train,
-    data: allDates.map(date => trainDateGroups[train][date] || null),
-    fill: false,
-    borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
-    tension: 0.1
-  }));
+  const datasets = Object.keys(trainDateGroups).map(train => {
+    if (!trainColorMap[train]) {
+      trainColorMap[train] = '#' + Math.floor(Math.random()*16777215).toString(16);
+    }
+    return {
+      label: train,
+      data: allDates.map(date => trainDateGroups[train][date] || null),
+      fill: false,
+      borderColor: trainColorMap[train],
+      tension: 0.1
+    };
+  });
 
   const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
   speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
