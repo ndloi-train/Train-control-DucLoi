@@ -326,9 +326,9 @@ function renderTable(data) {
       speed = (speed * 100000 / 3600).toFixed(2) + " cm/s";
     }
 
-    const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString();
+    const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN");
     const gioDen = new Date(row["Giờ Đến"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-    const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString();
+    const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN");
     const gioRoi = new Date(row["Giờ Rời"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
 
     const tr = document.createElement("tr");
