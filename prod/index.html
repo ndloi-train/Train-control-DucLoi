@@ -171,8 +171,8 @@
     <input type="time" id="timeFrom" />
     <input type="time" id="timeTo" />
 
-    <button id="exportExcel">Export Excel</button>
-    <button id="exportPDF">Export PDF</button>
+    <button id="exportExcel">Xuất file Excel</button>
+    <button id="exportPDF">Xuất file PDF</button>
   </div>
 
   <table id="trainTable">
@@ -293,8 +293,8 @@ function populateFilters() {
   });
 
   // Rebuild options
-  tenTauSelect.innerHTML = `<option value="">All Tên Tàu</option>`;
-  tuyenSelect.innerHTML = `<option value="">All Tuyến</option>`;
+  tenTauSelect.innerHTML = `<option value="">Tất Cả Tên Tàu</option>`;
+  tuyenSelect.innerHTML = `<option value="">Tất Cả Tuyến</option>`;
   tenTauSet.forEach(val => {
     tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
   });
