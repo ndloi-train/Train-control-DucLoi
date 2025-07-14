@@ -323,7 +323,7 @@ function renderTable(data) {
     } else if (speedUnit === "ms") {
       speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
     } else if (speedUnit === "cms") {
-      speed = (speed * 100000 / 3600).toFixed(2) + " m/s";
+      speed = (speed * 100000 / 3600).toFixed(2) + " cm/s";
     }
 
     const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString();
