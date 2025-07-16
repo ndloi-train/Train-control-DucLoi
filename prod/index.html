@@ -272,7 +272,19 @@ function reapplyFiltersAndSort() {
     sortBy(currentSort.key);
   }
 }
-  
+
+function hashColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let color = '#';
+  for (let i = 0; i < 3; i++) {
+    color += ('00' + ((hash >> (i * 8)) & 0xFF).toString(16)).substr(-2);
+  }
+  return color;
+}
+
 async function fetchDataAndRender() {
   try {
     const res = await fetch(GAS_URL + "?t=" + Date.now());
@@ -568,7 +580,7 @@ function renderCharts() {
       datasets: [{
         label: 'Tốc Độ Trung Bình (km/h)',
         data: avgSpeeds,
-        backgroundColor: '#FF6600'
+        backgroundColor: trainNames.map(name => hashColor(name))
       }]
     },
     options: {
@@ -590,7 +602,7 @@ function renderCharts() {
       datasets: [{
         label: 'Số Chuyến',
         data: Object.values(tripCounts),
-        backgroundColor: '#FFD580'
+        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name))
       }]
     },
     options: {
@@ -633,7 +645,7 @@ function renderCharts() {
 
   const datasets = Object.keys(trainDateGroups).map(train => {
     if (!trainColorMap[train]) {
-      trainColorMap[train] = '#' + Math.floor(Math.random()*16777215).toString(16);
+      trainColorMap[train] = '#' + Math.floor(hashColor(train)*16777215).toString(16);
     }
     return {
       label: train,
@@ -643,7 +655,7 @@ function renderCharts() {
       tension: 0.1
     };
   });
-
+  
   const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
   speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
     type: 'line',
