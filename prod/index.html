@@ -518,11 +518,11 @@ servoToggleButton.addEventListener("click", () => {
   
 function updateServoUI() {
   if (servoState === 0) {
-    servoToggleButton.textContent = "Đóng Servo";
-    servoStateLabel.textContent = "Trạng thái: Mở";
+    servoToggleButton.textContent = "Đóng barrier";
+    servoStateLabel.textContent = "Trạng thái barrier: Mở";
   } else if (servoState === 1) {
-    servoToggleButton.textContent = "Mở Servo";
-    servoStateLabel.textContent = "Trạng thái: Đóng";
+    servoToggleButton.textContent = "Mở barrier";
+    servoStateLabel.textContent = "Trạng thái barrier: Đóng";
   }
 }
 
