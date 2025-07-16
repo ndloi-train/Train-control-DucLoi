@@ -642,7 +642,7 @@ function renderCharts() {
 
   const datasets = Object.keys(trainDateGroups).map(train => {
     if (!trainColorMap[train]) {
-      trainColorMap[train] = '#' + Math.floor(hashColor(train)*16777215).toString(16);
+      trainColorMap[train] = hashColor(train);
     }
     return {
       label: train,
