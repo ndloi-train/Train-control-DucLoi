@@ -278,11 +278,8 @@ function hashColor(str) {
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  let color = '#';
-  for (let i = 0; i < 3; i++) {
-    color += ('00' + ((hash >> (i * 8)) & 0xFF).toString(16)).substr(-2);
-  }
-  return color;
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 50%)`;
 }
 
 async function fetchDataAndRender() {
