@@ -274,12 +274,13 @@ function reapplyFiltersAndSort() {
 }
 
 function hashColor(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 70%, 50%)`;
+	let hash = 0;
+	for (let i = 0; i < str.length; i++) {
+		hash = str.charCodeAt(i) + ((hash << 7) - hash);
+	}
+	const normalized = (hash >>> 0) / 0xffffffff; // 0–1
+	const hue = Math.floor(normalized * 360);
+	return `hsl(${hue}, 70%, 50%)`;
 }
 
 async function fetchDataAndRender() {
