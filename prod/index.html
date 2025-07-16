@@ -212,8 +212,8 @@
 <div id="sectionBangDieuKhien" style="display:none;">
   <h1>Bảng Điều Khiển</h1>
   <div class="dashboard-controls">
-    <button id="servoClose">Đóng Servo</button>
-    <button id="servoOpen">Mở Servo</button>
+    <button id="servoToggle">Đang tải trạng thái...</button>
+    <span id="servoStateLabel"></span>
   </div>
 </div>
 
@@ -416,14 +416,24 @@ function sortBy(key) {
 
   renderTable(sorted);
 }
+  
+let servoState = null;
 
 function setupWebSocket() {
   ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
-  ws.onopen = () => console.log("WebSocket connected.");
+  ws.onopen = () => {
+    console.log("WebSocket connected.");
+    ws.send("servo state sync");
+  };
   ws.onmessage = (event) => {
     console.log("WebSocket message received:", event.data);
     if (event.data === "front-end update") {
       fetchDataAndRender();
+    }
+    if (event.data.startsWith("servo is")) {
+      const parts = event.data.split(" ");
+      servoState = parseInt(parts[2], 10);
+      updateServoUI();
     }
   };
   ws.onclose = () => {
@@ -472,16 +482,28 @@ async function exportPDF() {
   });
 }
 
-document.getElementById("servoClose").addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send("servo close");
+const servoToggleButton = document.getElementById("servoToggle");
+const servoStateLabel = document.getElementById("servoStateLabel");
+
+servoToggleButton.addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN && servoState !== null) {
+    if (servoState === 0) {
+      ws.send("servo close");
+    } else {
+      ws.send("servo open");
+    }
   }
 });
-document.getElementById("servoOpen").addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send("servo open");
+  
+function updateServoUI() {
+  if (servoState === 0) {
+    servoToggleButton.textContent = "Đóng Servo";
+    servoStateLabel.textContent = "Trạng thái: Mở";
+  } else if (servoState === 1) {
+    servoToggleButton.textContent = "Mở Servo";
+    servoStateLabel.textContent = "Trạng thái: Đóng";
   }
-});
+}
 
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
 document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
