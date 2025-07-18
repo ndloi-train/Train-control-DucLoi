@@ -568,6 +568,7 @@ function renderCharts() {
 
   const trainNames = Object.keys(trainSpeeds);
   const avgSpeeds = trainNames.map(name => (trainSpeeds[name]/trainCounts[name]).toFixed(2));
+  const globalAvgSpeed = (avgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / avgSpeeds.length).toFixed(2);
 
   const ctxAvgSpeed = document.getElementById('avgSpeedChart').getContext('2d');
   avgSpeedChartInstance = new Chart(ctxAvgSpeed, {
@@ -578,6 +579,15 @@ function renderCharts() {
         label: 'Tốc Độ Trung Bình (km/h)',
         data: avgSpeeds,
         backgroundColor: trainNames.map(name => hashColor(name))
+      },
+                 {
+        label: 'Tốc độ TB tất cả tàu',
+        type: 'line',
+        data: Array(avgSpeeds.length).fill(globalAvgSpeed),
+        borderColor: 'red',
+        borderWidth: 2,
+        fill: false,
+        pointRadius: 0
       }]
     },
     options: {
@@ -590,6 +600,7 @@ function renderCharts() {
 
   // --- 2. Trip count per train ---
   const tripCounts = trainCounts;
+  const globalTripAvg = (Object.values(tripCounts).reduce((a, b) => a + b, 0) / Object.values(tripCounts).length).toFixed(2);
 
   const ctxTripCount = document.getElementById('tripCountChart').getContext('2d');
   tripCountChartInstance = new Chart(ctxTripCount, {
@@ -600,6 +611,15 @@ function renderCharts() {
         label: 'Số Chuyến',
         data: Object.values(tripCounts),
         backgroundColor: Object.keys(tripCounts).map(name => hashColor(name))
+      },
+                 {
+        label: 'Số chuyến TB tất cả tàu',
+        type: 'line',
+        data: Array(Object.keys(tripCounts).length).fill(globalTripAvg),
+        borderColor: 'red',
+        borderWidth: 2,
+        fill: false,
+        pointRadius: 0
       }]
     },
     options: {
@@ -666,6 +686,29 @@ function renderCharts() {
         y: { beginAtZero: true }
       }
     }
+  });
+  // Calculate average of all values (excluding nulls)
+  let totalSum = 0;
+  let totalCount = 0;
+  Object.values(trainDateGroups).forEach(trainData => {
+    Object.values(trainData).forEach(val => {
+      if (val !== null && val !== undefined) {
+        totalSum += parseFloat(val);
+        totalCount++;
+      }
+    });
+  });
+  const globalDailyAvg = (totalSum / totalCount).toFixed(2);
+  
+  // Add red average line
+  datasets.push({
+    label: 'Tốc độ TB tất cả tàu mỗi ngày',
+    data: Array(allDates.length).fill(globalDailyAvg),
+    borderColor: 'red',
+    borderWidth: 2,
+    fill: false,
+    pointRadius: 0,
+    borderDash: [5, 5]
   });
 }
 
