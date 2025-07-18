@@ -401,7 +401,7 @@ function renderTable(data) {
     // Apply fade-in animation with staggered delay
     tr.style.opacity = "0";
     tr.style.animation = "fadeIn 0.4s ease-out forwards";
-    tr.style.animationDelay = `${row["STT"] * 0.05}s`;
+    tr.style.animationDelay = `${row["STT"] * 0.5}s`;
     tbody.appendChild(tr);
   });
 }
