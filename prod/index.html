@@ -282,7 +282,7 @@
     <div>
       <span>Trạng thái barrier</span>
 	    <span id="servoStateLabel"></span>
-      <img id="servoSatateLabelImg" src="./download.jpg" width="100" height="100">
+      <img id="servoSatateLabelImg" src="./download.png" width="100" height="100">
 	  </div>
     <div>
 	    <span>Điều khiển barrier</span>
@@ -589,11 +589,11 @@ function updateServoUI() {
   if (servoState === 0) {
     servoToggleButton.textContent = "Hạ barrier";
     servoStateLabel.textContent = "Mở";
-    document.getElementById("servoSatateLabelImg").src = "./download (1).jpg"
+    document.getElementById("servoSatateLabelImg").src = "./download (1).png"
   } else if (servoState === 1) {
     servoToggleButton.textContent = "Nâng barrier";
     servoStateLabel.textContent = "Đóng";
-    document.getElementById("servoSatateLabelImg").src = "./download.jpg"
+    document.getElementById("servoSatateLabelImg").src = "./download.png"
   }
 }
 
