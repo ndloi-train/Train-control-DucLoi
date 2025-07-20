@@ -254,8 +254,14 @@
 <div id="sectionBangDieuKhien" style="display:none;">
   <h1>Bảng Điều Khiển</h1>
   <div class="dashboard-controls">
-    <span id="servoStateLabel"></span>
-    <button id="servoToggle">Đang tải trạng thái...</button>
+	  <div>
+      <span>Trạng thái barrier</span>
+	    <span id="servoStateLabel"></span>
+	  </div>
+    <div>
+	    <span>Điều khiển barrier</span>
+	    <button id="servoToggle">Đang tải trạng thái...</button>
+	  </div>
   </div>
 </div>
 
@@ -555,10 +561,10 @@ servoToggleButton.addEventListener("click", () => {
   
 function updateServoUI() {
   if (servoState === 0) {
-    servoToggleButton.textContent = "Đóng barrier";
+    servoToggleButton.textContent = "Hạ barrier";
     servoStateLabel.textContent = "Trạng thái barrier: Mở";
   } else if (servoState === 1) {
-    servoToggleButton.textContent = "Mở barrier";
+    servoToggleButton.textContent = "Nâng barrier";
     servoStateLabel.textContent = "Trạng thái barrier: Đóng";
   }
 }
