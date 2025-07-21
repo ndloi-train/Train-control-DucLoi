@@ -13,13 +13,18 @@
     color: #333;
   }
   header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: #ffd580;
     padding: 10px 20px;
     color: #333;
-    position: relative;
+    z-index: 1000;
+    border-bottom: 5px solid #000;
   }
   header img {
     height: 75px;
