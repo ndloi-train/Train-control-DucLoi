@@ -37,11 +37,16 @@
     text-align: center;
   }
   .nav-bar {
+    position: fixed;
+    top: 100px; /* adjust based on header height */ 
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: right;
     background-color: #cb895500;
     border-top: 2px solid #000000;
     border-bottom: 2px solid #000000;
+    z-index: 999;
   }
   .nav-bar button {
     width: 165px;
