@@ -13,18 +13,13 @@
     color: #333;
   }
   header {
-  	position: fixed;
-  	top: 0;
-  	left: 0;
-  	right: 0;
-  	height: 60px;
-  	background: #ffd580;
-  	z-index: 1000;
-  	display: flex;
-  	justify-content: space-between;
-  	align-items: center;
-  	padding: 10px 20px;
-  	border-bottom: 5px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffd580;
+    padding: 10px 20px;
+    color: #333;
+    position: relative;
   }
   header img {
     height: 75px;
@@ -37,18 +32,11 @@
     text-align: center;
   }
   .nav-bar {
-  	position: fixed;
-  	top: 80px; /* right under header */
-  	left: 0;
-  	right: 0;
-  	height: 40px;
-  	background: #cb895500;
-  	border-top: 2px solid #000;
-  	border-bottom: 2px solid #000;
-  	z-index: 999;
-  	display: flex;
-  	justify-content: right;
-  	align-items: center;
+    display: flex;
+    justify-content: right;
+    background-color: #cb895500;
+    border-top: 2px solid #000000;
+    border-bottom: 2px solid #000000;
   }
   .nav-bar button {
     width: 165px;
@@ -70,28 +58,18 @@
     border-color: #cc5200;
   }
   h1 {
-		position: fixed;
-    top: 120px;
-    left: 0;
-    right: 0;
     text-align: left;
     color: #ffffff;
     background-color: #FF6600;;
     padding: 20px 0;
     margin-top: 0;
-		z-index: 998;
   }
   .controls {
-		position: fixed;
-    top: 200px;
-    left: 0;
-    right: 0;
     margin: 15px auto;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
-		z-index: 997;
   }
   .controls input, .controls select, .controls button {
     padding: 6px;
@@ -195,41 +173,6 @@
   	box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
   	border-color: #FF6600;
   }
-  .banner-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    flex: 1;
-  }
-  .sub-banner {
-    font-size: 22px;
-    color: #00a9ec;
-  }
-  header img {
-    height: 75px;
-  }
-  .mirrored-logo {
-    height: 100px;
-    transform: scaleX(-1);
-  }
-  .content-scroll {
-    position: absolute;
-    top: 260px; /* header + nav-bar + h1 + controls */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow-y: auto;
-    padding: 20px;
-    background: #f9f9f9;
-  }
-  #trainTable thead th {
-  	position: sticky;
-  	top: 0;
-  	background: #FF6600;
-  	color: #fff;
-  	z-index: 5;
-  }
 </style>
 <!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -240,22 +183,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <header>
-    <img src="./FPT_Train_logo.svg_2.png" alt="Logo">
-    <div class="banner-container">
-      <div class="banner">ĐƯỜNG SẮT VIỆT NAM</div>
-      <div class="sub-banner">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
-    </div>
-    <img src="./OIP-removebg-preview.png" class="mirrored-logo">
-  </header>
 
-  <div class="nav-bar">
-    <button class="active-nav">Thông Tin Tàu</button>
-    <button>Phân tích dữ liệu</button>
-    <button>Bảng Điều Khiển</button>
-  </div>
+<header style="padding-bottom: 0px;padding-top: 0px;border-bottom-width: 5px;border-right-width: 5px;">
+  <img src="./FPT_Train_logo.svg_2.png" style"size" alt="Logo" style="size = 310;padding-left: 20px;">
+  <div style="
+    padding-left: 40px;
+">
+    <div class="banner" style="
+    padding-bottom: 10px;">ĐƯỜNG SẮT VIỆT NAM</div>
+  	<div class="banner" style="font-size: 22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
+  </div>  
+	<img src="./OIP-removebg-preview.png" style="padding-right: 0px; height: 100px; transform: scaleX(-1); padding-left: 20px;">
+</header>
 
-  <h1>Thông Tin Tàu</h1>
+<div class="nav-bar">
+  <button>Thông Tin Tàu</button>
+  <button>Phân tích dữ liệu</button>
+  <button>Bảng Điều Khiển</button>
+</div>
+
+<div id="sectionHoSoTau">
+  <h1 style="
+    padding-left: 80px;
+    font-size: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+">Thông Tin Tàu</h1>
 
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Search..." />
@@ -275,62 +228,68 @@
     <input type="date" id="dateTo" />
     <input type="time" id="timeFrom" />
     <input type="time" id="timeTo" />
+
     <button id="exportExcel">Xuất file Excel</button>
     <button id="exportPDF">Xuất file PDF</button>
   </div>
 
-  <div class="content-scroll">
-    <div id="sectionHoSoTau">
-      <table id="trainTable">
-        <thead>
-          <tr>
-            <th data-key="STT">STT</th>
-            <th data-key="Tên Tàu">Tên Tàu</th>
-            <th data-key="Tuyến">Tuyến</th>
-            <th data-key="Trạm">Trạm</th>
-            <th data-key="Vận Tốc">Vận Tốc</th>
-            <th>Ngày Đến</th>
-            <th>Giờ Đến</th>
-            <th>Ngày Rời</th>
-            <th>Giờ Rời</th>
-            <th data-key="Trạng Thái">Trạng Thái</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <table id="trainTable">
+    <thead>
+      <tr>
+        <th data-key="STT">STT</th>
+        <th data-key="Tên Tàu">Tên Tàu</th>
+        <th data-key="Tuyến">Tuyến</th>
+        <th data-key="Trạm">Trạm</th>
+        <th data-key="Vận Tốc">Vận Tốc</th>
+        <th>Ngày Đến</th>
+        <th>Giờ Đến</th>
+        <th>Ngày Rời</th>
+        <th>Giờ Rời</th>
+        <th data-key="Trạng Thái">Trạng Thái</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-    <div id="sectionPhanTich" style="display:none;">
-      <h2>Phân Tích Dữ Liệu</h2>
-      <div style="width:90%; margin:auto;">
-        <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
-        <canvas id="avgSpeedChart" height="150"></canvas>
+<div id="sectionPhanTich" style="display:none;">
+  <h1 style="
+    padding-left: 80px;
+    font-size: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+">Phân Tích Dữ Liệu</h1>
+  <div style="width:90%; margin:auto;">
+    <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
+    <canvas id="avgSpeedChart" height="150"></canvas>
 
-        <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
-        <canvas id="tripCountChart" height="150"></canvas>
+    <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
+    <canvas id="tripCountChart" height="150"></canvas>
 
-        <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày</h3>
-        <canvas id="speedPerDayChart" height="150"></canvas>
-      </div>
-    </div>
-
-    <div id="sectionBangDieuKhien" style="display:none;">
-      <h2>Bảng Điều Khiển</h2>
-      <div class="dashboard-controls">
-        <div>
-          <span>Trạng thái barrier</span>
-          <span id="servoStateLabel"></span>
-          <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
-        </div>
-        <div>
-          <span>Điều khiển barrier</span>
-          <button id="servoToggle">Đang tải trạng thái...</button>
-        </div>
-      </div>
-    </div>
+    <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày</h3>
+    <canvas id="speedPerDayChart" height="150"></canvas>
   </div>
-</body>
+</div>
 
+<div id="sectionBangDieuKhien" style="display:none;">
+  <h1 style="
+    padding-left: 80px;
+    font-size: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+">Bảng Điều Khiển</h1>
+  <div class="dashboard-controls">
+    <div>
+      <span>Trạng thái barrier</span>
+	    <span id="servoStateLabel"></span>
+      <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
+	  </div>
+    <div>
+	    <span>Điều khiển barrier</span>
+	    <button id="servoToggle">Đang tải trạng thái...</button>
+	  </div>
+  </div>
+</div>
 
 <script>
 
