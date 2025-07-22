@@ -173,6 +173,32 @@
   	box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
   	border-color: #FF6600;
   }
+  #sectionHoSoTau {
+  	position: relative;
+  }
+  
+  #sectionHoSoTau h1 {
+  	position: sticky;
+  	top: 0;
+  	background: white;
+  	z-index: 100;
+  	padding: 10px 0;
+  }
+  
+  #sectionHoSoTau .controls {
+  	position: sticky;
+  	top: 60px; /* adjust if your h1 is taller */
+  	background: white;
+  	z-index: 90;
+  	padding: 10px 0;
+  }
+  
+  #trainTable thead {
+  	position: sticky;
+  	top: 120px; /* h1 height + controls height */
+  	background: white;
+  	z-index: 80;
+  }
 </style>
 <!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
