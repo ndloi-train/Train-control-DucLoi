@@ -208,6 +208,65 @@
   	background: white;
   	z-index: 80;
   }
+  .collapsible-container {
+    margin: 30px auto;
+    padding: 15px;
+    width: fit-content;
+    background: #fff;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .toggle-form-btn {
+    background: #034ea2;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 15px;
+  }
+  
+  .toggle-form-btn:hover {
+    background: #007fd0;
+  }
+  
+  #settingsForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+    opacity: 1;
+  }
+  
+  #settingsForm.hidden {
+    display: none;
+  }
+  
+  #settingsForm input[type="number"] {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  #settingsForm button[type="submit"] {
+    background: #FF6600;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  #settingsForm button[type="submit"]:hover {
+    background: #e65c00;
+  }
 </style>
 <!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -332,13 +391,21 @@
 	    <button id="autoToggle">Đang tải trạng thái...</button>
 	  </div>
   </div>
-    <form">
-    <label for="fname">First name:</label>
-    <input type="text" id="fname" name="fname"><br><br>
-    <label for="lname">Last name:</label>
-    <input type="text" id="lname" name="lname"><br><br>
-    <input type="submit" value="Submit">
+  <div class="collapsible-container">
+    <button class="toggle-form-btn">Cài đặt</button>
+    <form id="settingsForm" class="hidden">
+      <label for="distance">Khoảng cách (m):</label>
+      <input type="number" id="distance" name="distance" placeholder="30" required>
+  
+      <label for="delay1">Độ trễ 1 (s):</label>
+      <input type="number" id="delay1" name="delay1" placeholder="20" required>
+  
+      <label for="delay2">Độ trễ 2 (s):</label>
+      <input type="number" id="delay2" name="delay2" placeholder="10" required>
+  
+      <button type="submit">Lưu</button>
     </form>
+  </div>
 </div>
 
 <script>
