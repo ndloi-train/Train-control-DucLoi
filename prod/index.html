@@ -731,7 +731,9 @@ function renderCharts() {
       datasets: [{
         label: 'Tốc Độ Trung Bình (km/h)',
         data: avgSpeeds,
-        backgroundColor: trainNames.map(name => hashColor(name))
+        backgroundColor: trainNames.map(name => hashColor(name)),
+        barThickness: 20,
+        maxBarThickness: 20
       },
                  {
         label: 'Tốc độ TB tất cả tàu',
@@ -763,7 +765,9 @@ function renderCharts() {
       datasets: [{
         label: 'Số Chuyến',
         data: Object.values(tripCounts),
-        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name))
+        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name)),
+        barThickness: 20,
+        maxBarThickness: 20
       },
                  {
         label: 'Số chuyến TB tất cả tàu',
