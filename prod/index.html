@@ -753,6 +753,30 @@ function updateautoUI() {
   }
 }
 
+const toggleBtn = document.querySelector('.toggle-form-btn');
+const form = document.getElementById('settingsForm');
+
+toggleBtn.addEventListener('click', () => {
+  form.classList.toggle('hidden');
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const distance = document.getElementById('distance').value;
+  const delay1 = document.getElementById('delay1').value;
+  const delay2 = document.getElementById('delay2').value;
+  
+  console.log("Submitted values:", { distance, delay1, delay2 });
+  
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		ws.send("distance " + distance);
+		ws.send("delay1 " + delay1);
+		ws.send("delay2 " + delay2);
+	} else {
+		console.warn("WebSocket is not open.");
+	}
+});
+
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
 document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
 document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
