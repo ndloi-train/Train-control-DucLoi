@@ -638,11 +638,15 @@ servoToggleButton.addEventListener("click", () => {
 function updateServoUI() {
   if (servoState === 0) {
     servoToggleButton.textContent = "Hạ barrier";
+    servoToggleButton.style.backgroundColor = "#f37021";
     servoStateLabel.textContent = "Mở";
+    servoStateLabel.style.backgroundColor = "#51b848";
     document.getElementById("servoSatateLabelImg").src = "./Barrier Open.png"
   } else if (servoState === 1) {
     servoToggleButton.textContent = "Nâng barrier";
+    servoToggleButton.style.backgroundColor = "#51b848";
     servoStateLabel.textContent = "Đóng";
+    servoStateLabel.style.backgroundColor = "#f37021";
     document.getElementById("servoSatateLabelImg").src = "./Barrier Close.png"
   }
 }
@@ -664,10 +668,14 @@ autoToggleButton.addEventListener("click", () => {
 function updateautoUI() {
   if (autoState === 0) {
     autoToggleButton.textContent = "Tắt tự động";
+    autoToggleButton.style.backgroundColor = "#f37021";
     autoStateLabel.textContent = "Bật";
+    autoStateLabel.style.backgroundColor = "#51b848";
   } else if (autoState === 1) {
     autoToggleButton.textContent = "Bật tự động";
+    autoToggleButton.style.backgroundColor = "#51b848";
     autoStateLabel.textContent = "Tắt";
+    autoStateLabel.style.backgroundColor = "#f37021";
   }
 }
 
