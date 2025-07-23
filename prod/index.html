@@ -551,6 +551,7 @@ function sortBy(key) {
 }
   
 let servoState = null;
+let autoState = null;
 
 function setupWebSocket() {
   ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
@@ -567,6 +568,11 @@ function setupWebSocket() {
       const parts = event.data.split(" ");
       servoState = parseInt(parts[2], 10);
       updateServoUI();
+    }
+    if (event.data.startsWith("auto is")) {
+      const parts = event.data.split(" ");
+      autoState = parseInt(parts[2], 10);
+      updateautoUI();
     }
   };
   ws.onclose = () => {
@@ -637,6 +643,30 @@ function updateServoUI() {
     servoToggleButton.textContent = "Nâng barrier";
     servoStateLabel.textContent = "Đóng";
     document.getElementById("servoSatateLabelImg").src = "./Barrier Close.png"
+  }
+}
+
+const autoToggleButton = document.getElementById("sutoToggle");
+const autoStateLabel = document.getElementById("autoStateLabel");
+
+autoToggleButton.addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
+    if (autoState === 0) {
+      ws.send("auto off");
+    } 
+    if (autoState === 1) {
+      ws.send("auto on");
+    }
+  }
+});
+  
+function updateautoUI() {
+  if (autoState === 0) {
+    autoToggleButton.textContent = "Tắt tự động";
+    autoStateLabel.textContent = "Bật";
+  } else if (autoState === 1) {
+    autoToggleButton.textContent = "Bật tự động";
+    autoStateLabel.textContent = "Tắt";
   }
 }
 
