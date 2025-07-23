@@ -558,6 +558,7 @@ function setupWebSocket() {
   ws.onopen = () => {
     console.log("WebSocket connected.");
     ws.send("servo state sync");
+    ws.send("auto state sync");
   };
   ws.onmessage = (event) => {
     console.log("WebSocket message received:", event.data);
