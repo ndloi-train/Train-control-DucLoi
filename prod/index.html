@@ -374,8 +374,16 @@
     padding-bottom: 10px;
 ">Bảng Điều Khiển</h1>
   <div class="dashboard-controls">
-    <div>
-      <div>
+    <div style="
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    padding: 20px;>
+      <div style="
+    padding-right: 100px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-top: 20px;>
         <div>
           <span>Trạng thái barrier</span>
     	    <span id="servoStateLabel"></span>
@@ -386,13 +394,17 @@
     	    <button id="servoToggle">Đang tải trạng thái...</button>
     	  </div>
       </div>
-      <div>
+      <div style="
+    padding-left: 100px;
+    padding-bottom: 20px;
+    padding-top: 20px;
+    padding-right: 20px;>
         <div>
           <span>Trạng thái hệ thống tự động</span>
     	    <span id="autoStateLabel"></span>
     	  </div>
         <div>
-    	    <span>Tắt hệ thống tự động</span>
+    	    <span>Điều khiển hệ thống tự động</span>
     	    <button id="autoToggle">Đang tải trạng thái...</button>
     	  </div>
       </div>
@@ -750,12 +762,12 @@ function updateautoUI() {
   if (autoState === 0) {
     autoToggleButton.textContent = "Tắt tự động";
     autoToggleButton.style.backgroundColor = "#f37021";
-    autoStateLabel.textContent = "Bật";
+    autoStateLabel.textContent = "tự động";
     autoStateLabel.style.backgroundColor = "#51b848";
   } else if (autoState === 1) {
     autoToggleButton.textContent = "Bật tự động";
     autoToggleButton.style.backgroundColor = "#51b848";
-    autoStateLabel.textContent = "Tắt";
+    autoStateLabel.textContent = "Thủ công";
     autoStateLabel.style.backgroundColor = "#f37021";
   }
 }
