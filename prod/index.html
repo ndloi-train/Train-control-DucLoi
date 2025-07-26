@@ -526,16 +526,16 @@ function renderTable(data) {
 
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
-    if (speedUnit === "kmh") {
+    if (speedUnit === "ms") {
       speed = speed.toFixed(2) + " km/h";
     } else if (speedUnit === "mh") {
-      speed = (speed * 1000).toFixed(2) + " m/h";
-    } else if (speedUnit === "ms") {
-      speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
+      speed = (speed * 3600).toFixed(2) + " m/h";
+    } else if (speedUnit === "kmh") {
+      speed = (speed / 1000 * 3600).toFixed(2) + " m/s";
     } else if (speedUnit === "cms") {
-      speed = (speed * 100000 / 3600).toFixed(2) + " cm/s";
+      speed = (speed * 100).toFixed(2) + " cm/s";
     }
-
+	  
     const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN");
     const gioDen = new Date(row["Giờ Đến"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
     const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN");
