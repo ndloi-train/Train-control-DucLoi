@@ -748,14 +748,14 @@ autoToggleButton.addEventListener("click", () => {
   
 function updateautoUI() {
   if (autoState === 0) {
-    autoToggleButton.textContent = "Tắt tự động";
+    autoToggleButton.textContent = "Manual";
     autoToggleButton.style.backgroundColor = "#f37021";
-    autoStateLabel.textContent = "tự động";
+    autoStateLabel.textContent = "Auto";
     autoStateLabel.style.backgroundColor = "#51b848";
   } else if (autoState === 1) {
-    autoToggleButton.textContent = "Bật tự động";
+    autoToggleButton.textContent = "Auto";
     autoToggleButton.style.backgroundColor = "#51b848";
-    autoStateLabel.textContent = "Thủ công";
+    autoStateLabel.textContent = "Manual";
     autoStateLabel.style.backgroundColor = "#f37021";
   }
 }
