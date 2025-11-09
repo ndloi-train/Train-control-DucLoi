@@ -170,16 +170,16 @@
   /* Apply fade-in to sections */
   #sectionHoSoTau,
   #sectionPhanTich,
-  #sectionBangDieuKhien {
+  /* #sectionBangDieuKhien {
   	animation: fadeIn 0.5s ease both;
-  }
+  } */
   
   /* Animate table rows when rendering */
-  #trainTable tbody tr {
+  /* #trainTable tbody tr {
   	opacity: 0;
   	transform: translateY(10px);
   	animation: fadeIn 0.3s ease forwards;
-  }
+  } */
   
   button, select, input[type="text"], input[type="date"], input[type="time"] {
   	transition: all 0.3s ease;
@@ -557,9 +557,9 @@ function renderTable(data) {
       <td>${row["Trạng Thái"]}</td>
     `;
     // Apply fade-in animation with staggered delay
-    tr.style.opacity = "0";
-    tr.style.animation = "fadeIn 0.4s ease-out forwards";
-    tr.style.animationDelay = `${row["STT"] * 0.01}s`;
+    // tr.style.opacity = "0";
+    // tr.style.animation = "fadeIn 0.4s ease-out forwards";
+    // tr.style.animationDelay = `${row["STT"] * 0.01}s`;
     tbody.appendChild(tr);
   });
 }
