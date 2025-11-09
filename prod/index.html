@@ -399,20 +399,32 @@
       </div>
     </div>
   </div>
-  <div class="collapsible-container">
-    <button class="toggle-form-btn">Cài đặt</button>
-    <form id="settingsForm" class="hidden">
-      <label for="distance">Khoảng cách (m):</label>
-      <input type="number" id="distance" name="distance" placeholder="30" required>
-  
-      <label for="delay1">Thời gian cảnh báo trước (s):</label>
-      <input type="number" id="delay1" name="delay1" placeholder="20" required>
-  
-      <label for="delay2">Thời gian đóng barrier trước (s):</label>
-      <input type="number" id="delay2" name="delay2" placeholder="10" required>
-  
-      <button type="submit">Lưu</button>
-    </form>
+  <div>
+    <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;">
+        <div>
+          <span>Trạng thái hệ thống tự động</span>
+    	  <span id="autoStateLabel"></span>
+    	</div>
+        <div>
+    	  <span>Điều khiển hệ thống tự động</span>
+    	  <button id="autoToggle">Đang tải trạng thái...</button>
+    	</div>
+    </div>
+      <div class="collapsible-container">
+        <button class="toggle-form-btn">Cài đặt</button>
+        <form id="settingsForm" class="hidden">
+          <label for="distance">Khoảng cách (m):</label>
+          <input type="number" id="distance" name="distance" placeholder="30" required>
+      
+          <label for="delay1">Thời gian cảnh báo trước (s):</label>
+          <input type="number" id="delay1" name="delay1" placeholder="20" required>
+      
+          <label for="delay2">Thời gian đóng barrier trước (s):</label>
+          <input type="number" id="delay2" name="delay2" placeholder="10" required>
+      
+          <button type="submit">Lưu</button>
+        </form>
+      </div>
   </div>
 </div>
 </div>
