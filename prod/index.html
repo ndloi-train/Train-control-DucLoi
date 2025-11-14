@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -25,18 +26,19 @@
     height: 75px;
   }
   header .banner {
+    left: 50%;
     font-size: 30px;
     font-weight: bold;
     color: #00a9ec;
     text-align: center;
   }
   .nav-bar {
-    position: sticky;
+		position: sticky;
     top: 0px;
     z-index: 110;
     display: flex;
     justify-content: right;
-    background-color: rgba(203,137,85,0.1);
+    background-color: #cb895500;
     border-top: 2px solid #000000;
     border-bottom: 2px solid #000000;
   }
@@ -60,12 +62,12 @@
     border-color: #cc5200;
   }
   h1 {
-    position: sticky;
-    top: 42px;
-    z-index: 100;
+	  position: sticky;
+  	top: 0;
+  	z-index: 100;
     text-align: left;
     color: #ffffff;
-    background-color: #FF6600;
+    background-color: #FF6600;;
     padding: 20px 0;
     margin-top: 0;
   }
@@ -108,7 +110,6 @@
     background: #FF6600;
     color: #fff;
     cursor: pointer;
-    user-select: none;
   }
   tr:hover {
     background: #fff4eb;
@@ -137,7 +138,7 @@
     background-color: #00a9ec;
     transform: translateY(-2px);
   }
-  #servoStateLabel, #autoStateLabel {
+  #servoStateLabel {
     display: inline-block;
     padding: 10px 16px;
     background-color: #034ea2;
@@ -149,33 +150,76 @@
     min-width: 50px;
     text-align: center;
   }
+  #autoStateLabel {
+    display: inline-block;
+    padding: 10px 16px;
+    background-color: #034ea2;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 50px;
+    text-align: center;
+  }
+	/* Fade-in animation keyframe */
+  /* @keyframes fadeIn {
+  	from { opacity: 0; transform: translateY(10px); }
+  	to { opacity: 1; transform: translateY(0); }
+  } */
+  
+  /* Apply fade-in to sections */
+  #sectionHoSoTau,
+  #sectionPhanTich,
+  /* #sectionBangDieuKhien {
+  	animation: fadeIn 0.5s ease both;
+  } */
+  
+  /* Animate table rows when rendering */
+  /* #trainTable tbody tr {
+  	opacity: 0;
+  	transform: translateY(10px);
+  	animation: fadeIn 0.3s ease forwards;
+  } */
+  
   button, select, input[type="text"], input[type="date"], input[type="time"] {
-    transition: all 0.3s ease;
+  	transition: all 0.3s ease;
   }
-  .controls input:focus, .controls select:focus {
-    outline: none;
-    box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
-    border-color: #FF6600;
+  
+  .controls input:focus,
+  .controls select:focus {
+  	outline: none;
+  	box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
+  	border-color: #FF6600;
   }
-  #sectionHoSoTau { position: relative; padding-bottom: 40px; }
+  #sectionHoSoTau {
+  	position: relative;
+  }
   #sectionHoSoTau .controls {
-    position: sticky;
-    top: 89px; /* h1 + nav bar */
-    background: #fff;
-    z-index: 90;
-    padding: 10px 0;
+  	position: sticky;
+  	top: 49px; /* adjust if your h1 is taller */
+  	background: white;
+  	z-index: 90;
+  	padding: 10px 0;
   }
-  #trainTable thead { position: sticky; top: 145px; background: white; z-index: 80; }
+  
+  #trainTable thead {
+  	position: sticky;
+  	top: 0px; /* h1 height + controls height */
+  	background: white;
+  	z-index: 80;
+  }
   .collapsible-container {
     margin: 30px auto;
     padding: 15px;
-    width: 260px;
+    width: 200px;
     background: #fff;
     border: 2px dashed #ccc;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
   }
+  
   .toggle-form-btn {
     width: 100%;
     background: #034ea2;
@@ -187,57 +231,90 @@
     cursor: pointer;
     margin-bottom: 15px;
   }
-  .toggle-form-btn:hover { background: #007fd0; }
-  #settingsForm { display:flex; flex-direction:column; gap:10px; transition: all 0.3s ease; overflow:hidden; }
-  #settingsForm.hidden { display:none; }
-  #settingsForm input[type="number"] { padding:8px; font-size:14px; border-radius:4px; border:1px solid #ccc; }
-  #settingsForm button[type="submit"] { background:#FF6600; color:white; border:none; padding:10px; font-size:15px; border-radius:6px; cursor:pointer; }
-  #settingsForm button[type="submit"]:hover { background:#e65c00; }
-  .loading-dot { display:inline-block; width:8px; height:8px; background:#fff; border-radius:50%; margin-left:6px; animation: blink 1s infinite; vertical-align:middle; }
-  @keyframes blink { 50% { opacity:0.3; } }
-  @media (max-width: 900px) {
-    .controls { gap:8px; }
-    .nav-bar { flex-wrap: wrap; }
-    .collapsible-container { width: 95%; }
+  
+  .toggle-form-btn:hover {
+    background: #007fd0;
+  }
+  
+  #settingsForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+    opacity: 1;
+  }
+  
+  #settingsForm.hidden {
+    display: none;
+  }
+  
+  #settingsForm input[type="number"] {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  #settingsForm button[type="submit"] {
+    background: #FF6600;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  #settingsForm button[type="submit"]:hover {
+    background: #e65c00;
   }
 </style>
-
 <!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- jsPDF and html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<header aria-label="Header">
-  <img src="./FPT_Train_logo.svg_2.png" alt="Logo" style="height:75px; padding-left:20px;">
-  <div style="padding-left:40px; flex:1; text-align:center;">
-    <div class="banner" style="padding-bottom:10px;">ĐƯỜNG SẮT VIỆT NAM</div>
-    <div class="banner" style="font-size:22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
-  </div>
-  <img src="./OIP-removebg-preview.png" alt="Logo right" style="height:75px; transform:scaleX(-1); padding-right:20px;">
+<header style="padding-bottom: 0px;padding-top: 0px;border-bottom-width: 5px;border-right-width: 5px;">
+  <img src="./FPT_Train_logo.svg_2.png" style"size" alt="Logo" style="size = 310;padding-left: 20px;">
+  <div style="
+    padding-left: 40px;
+">
+    <div class="banner" style="
+    padding-bottom: 10px;">ĐƯỜNG SẮT VIỆT NAM</div>
+  	<div class="banner" style="font-size: 22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
+  </div>  
+	<img src="./OIP-removebg-preview.png" style="padding-right: 0px; height: 100px; transform: scaleX(-1); padding-left: 20px;">
 </header>
 
-<div class="nav-bar" role="navigation" aria-label="Main navigation">
-  <button type="button">Thông Tin Tàu</button>
-  <button type="button">Phân tích dữ liệu</button>
-  <button type="button">Bảng Điều Khiển</button>
+<div class="nav-bar">
+  <button>Thông Tin Tàu</button>
+  <button>Phân tích dữ liệu</button>
+  <button>Bảng Điều Khiển</button>
 </div>
 
 <div id="sectionHoSoTau">
-  <h1 style="padding-left:80px; font-size:25px; padding-top:10px; padding-bottom:10px;">Thông Tin Tàu</h1>
+  <h1 style="
+    padding-left: 80px;
+    font-size: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+">Thông Tin Tàu</h1>
 
-  <div class="controls" aria-hidden="false">
-    <input type="text" id="searchInput" placeholder="Search..." aria-label="Search trains" />
-    <select id="filterTenTau" aria-label="Filter by train name">
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search..." />
+    <select id="filterTenTau">
       <option value="">Tất Cả Tên Tàu</option>
     </select>
-    <select id="filterTuyen" aria-label="Filter by route">
+    <select id="filterTuyen">
       <option value="">Tất Cả Tuyến</option>
     </select>
-    <select id="speedUnit" aria-label="Speed unit">
+    <select id="speedUnit">
       <option value="kmh">Vận Tốc: km/giờ</option>
       <option value="mh">Vận Tốc: m/giờ</option>
       <option value="ms">Vận Tốc: m/giây</option>
@@ -252,7 +329,7 @@
     <button id="exportPDF">Xuất file PDF</button>
   </div>
 
-  <table id="trainTable" aria-label="Train data table">
+  <table id="trainTable">
     <thead>
       <tr>
         <th data-key="STT">STT</th>
@@ -260,10 +337,10 @@
         <th data-key="Tuyến">Tuyến</th>
         <th data-key="Trạm">Trạm</th>
         <th data-key="Vận Tốc">Vận Tốc</th>
-        <th data-key="Ngày Đến">Ngày Đến</th>
-        <th data-key="Giờ Đến">Giờ Đến</th>
-        <th data-key="Ngày Rời">Ngày Rời</th>
-        <th data-key="Giờ Rời">Giờ Rời</th>
+        <th>Ngày Đến</th>
+        <th>Giờ Đến</th>
+        <th>Ngày Rời</th>
+        <th>Giờ Rời</th>
         <th data-key="Trạng Thái">Trạng Thái</th>
       </tr>
     </thead>
@@ -272,7 +349,12 @@
 </div>
 
 <div id="sectionPhanTich" style="display:none;">
-  <h1 style="padding-left:80px; font-size:25px; padding-top:10px; padding-bottom:10px;">Phân Tích Dữ Liệu</h1>
+  <h1 style="
+    padding-left: 80px;
+    font-size: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+">Phân Tích Dữ Liệu</h1>
   <div style="width:90%; margin:auto;">
     <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
     <canvas id="avgSpeedChart" height="150"></canvas>
@@ -286,118 +368,145 @@
 </div>
 
 <div id="sectionBangDieuKhien" style="display:none;">
-  <h1 style="padding-left:80px; font-size:25px; padding-top:10px; padding-bottom:10px;">Bảng Điều Khiển</h1>
-  <div style="display:flex; flex-direction:row; flex-wrap:wrap;">
-    <div class="dashboard-controls" style="min-width:300px;">
-      <div style="padding:20px;">
+  <h1 style="
+    padding-left: 80px;
+    font-size: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+">Bảng Điều Khiển</h1>
+<div style="display: flex; flex-direction: row;">
+  <div class="dashboard-controls">
+    <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px;">
+      <div style="padding-left: 20px; padding-bottom: 20px; padding-top: 20px; padding-right: 100px;">
         <div>
           <span>Trạng thái barrier</span>
-          <span id="servoStateLabel" aria-live="polite"></span>
-          <img id="servoStateLabelImg" src="./Barrier Open.png" alt="Barrier image" width="100" height="100" style="vertical-align:middle;">
-        </div>
-        <div style="margin-top:8px;">
-          <span>Điều khiển barrier</span>
-          <button id="servoToggle" aria-pressed="false">Đang tải trạng thái<span class="loading-dot" aria-hidden="true"></span></button>
-        </div>
+    	    <span id="servoStateLabel"></span>
+          <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
+    	  </div>
+        <div>
+    	    <span>Điều khiển barrier</span>
+    	    <button id="servoToggle">Đang tải trạng thái...</button>
+    	  </div>
       </div>
-    </div>
-
-    <div style="padding:20px;">
-      <div class="dashboard-controls">
+      <!-- <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;">
         <div>
           <span>Trạng thái hệ thống tự động</span>
-          <span id="autoStateLabel" aria-live="polite"></span>
-        </div>
-        <div style="margin-top:8px;">
-          <span>Điều khiển hệ thống tự động</span>
-          <button id="autoToggle" aria-pressed="false">Đang tải trạng thái<span class="loading-dot" aria-hidden="true"></span></button>
-        </div>
-      </div>
-
-      <div class="collapsible-container" style="margin-top:20px;">
-        <button class="toggle-form-btn" aria-expanded="false">Cài đặt</button>
-        <form id="settingsForm" class="hidden" aria-hidden="true">
+    	    <span id="autoStateLabel"></span>
+    	  </div>
+        <div>
+    	    <span>Điều khiển hệ thống tự động</span>
+    	    <button id="autoToggle">Đang tải trạng thái...</button>
+    	  </div>
+      </div> -->
+    </div>
+  </div>
+  <div>
+    <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;" class="dashboard-controls">
+        <div>
+          <span>Trạng thái hệ thống tự động</span>
+    	  <span id="autoStateLabel"></span>
+    	</div>
+        <div>
+    	  <span>Điều khiển hệ thống tự động</span>
+    	  <button id="autoToggle">Đang tải trạng thái...</button>
+    	</div>
+    </div>
+      <div class="collapsible-container">
+        <button class="toggle-form-btn">Cài đặt</button>
+        <form id="settingsForm" class="hidden">
           <label for="distance">Khoảng cách (m):</label>
           <input type="number" id="distance" name="distance" placeholder="30" required>
-
+      
           <label for="delay1">Thời gian cảnh báo trước (s):</label>
           <input type="number" id="delay1" name="delay1" placeholder="20" required>
-
+      
           <label for="delay2">Thời gian đóng barrier trước (s):</label>
           <input type="number" id="delay2" name="delay2" placeholder="10" required>
-
+      
           <button type="submit">Lưu</button>
         </form>
       </div>
-    </div>
   </div>
+</div>
 </div>
 
 <script>
-/* -------------------------
-  Config & state
-   ------------------------- */
+
+const navButtons = document.querySelectorAll(".nav-bar button");
+
+navButtons[0].classList.add("active-nav");
+
+const sections = {
+  "Thông Tin Tàu": "sectionHoSoTau",
+  "Phân tích dữ liệu": "sectionPhanTich",
+  "Bảng Điều Khiển": "sectionBangDieuKhien"
+};
+
+navButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    Object.values(sections).forEach(id => {
+      document.getElementById(id).style.display = "none";
+    });
+    const sectionId = sections[button.textContent.trim()];
+    if (sectionId) {
+      const section = document.getElementById(sectionId);
+      section.style.opacity = 0;
+      section.style.display = "block";
+      setTimeout(() => section.style.opacity = 1, 10);
+    }
+    navButtons.forEach(btn => btn.classList.remove("active-nav"));
+    button.classList.add("active-nav");
+  });
+});
+
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
 let originalData = [];
 let currentFilteredData = [];
 let currentSort = { key: "", asc: true };
 let ws = null;
-let servoState = null;
-let autoState = null;
 
-/* -------------------------
-  UI utilities
-   ------------------------- */
-function $(sel){ return document.querySelector(sel); }
-function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
-
-/* debounce helper */
-function debounce(fn, wait){
-  let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(()=> fn.apply(null, args), wait);
-  };
-}
-
-/* Save / apply speed unit */
 function applySavedUnits() {
   const savedSpeedUnit = localStorage.getItem("speedUnit");
-  if (savedSpeedUnit) $('#speedUnit').value = savedSpeedUnit;
+  if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
 }
-applySavedUnits();
 
-/* -------------------------
-  Fetch + populate
-   ------------------------- */
-async function fetchDataAndRender(){
+function reapplyFiltersAndSort() {
+  filterAndSearch();
+  if (currentSort.key) {
+    sortBy(currentSort.key);
+  }
+}
+
+function hashColor(str) {
+	let hash = 5381;
+	for (let i = 0; i < str.length; i++) {
+		hash = (hash * 33) ^ str.charCodeAt(i);
+	}
+	const hue = Math.abs(hash) % 360;
+	return `hsl(${hue}, 70%, 50%)`;
+}
+
+async function fetchDataAndRender() {
   try {
     const res = await fetch(GAS_URL + "?t=" + Date.now());
     const json = await res.json();
-    if (json.status === "success" && Array.isArray(json.data)) {
-      originalData = json.data.map((r, idx) => {
-        // Normalize fields and keep numeric speed
-        return {
-          ...r,
-          STT: r["STT"] ?? (idx+1),
-          "Vận Tốc": Number(r["Vận Tốc"]) || 0
-        };
-      });
-      currentFilteredData = originalData.slice();
+    if (json.status === "success") {
+      originalData = json.data;
+      currentFilteredData = originalData;
       populateFilters();
       reapplyFiltersAndSort();
       renderCharts();
-    } else {
-      console.warn("Unexpected response from GAS:", json);
     }
   } catch (err) {
     console.error("Error fetching train data:", err);
   }
 }
 
-function populateFilters(){
-  const tenTauSelect = $("#filterTenTau");
-  const tuyenSelect = $("#filterTuyen");
+function populateFilters() {
+  const tenTauSelect = document.getElementById("filterTenTau");
+  const tuyenSelect = document.getElementById("filterTuyen");
+
+  // Save the currently selected values
   const savedTenTau = tenTauSelect.value;
   const savedTuyen = tuyenSelect.value;
 
@@ -405,367 +514,175 @@ function populateFilters(){
   const tuyenSet = new Set();
 
   originalData.forEach(item => {
-    if (item["Tên Tàu"]) tenTauSet.add(item["Tên Tàu"]);
-    if (item["Tuyến"]) tuyenSet.add(item["Tuyến"]);
+    tenTauSet.add(item["Tên Tàu"]);
+    tuyenSet.add(item["Tuyến"]);
   });
 
+  // Rebuild options
   tenTauSelect.innerHTML = `<option value="">Tất Cả Tên Tàu</option>`;
   tuyenSelect.innerHTML = `<option value="">Tất Cả Tuyến</option>`;
-  tenTauSet.forEach(val => tenTauSelect.insertAdjacentHTML('beforeend', `<option value="${val}">${val}</option>`));
-  tuyenSet.forEach(val => tuyenSelect.insertAdjacentHTML('beforeend', `<option value="${val}">${val}</option>`));
+  tenTauSet.forEach(val => {
+    tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
+  });
+  tuyenSet.forEach(val => {
+    tuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
+  });
 
-  tenTauSelect.value = savedTenTau || "";
-  tuyenSelect.value = savedTuyen || "";
+  // Restore the saved selections
+  tenTauSelect.value = savedTenTau;
+  tuyenSelect.value = savedTuyen;
 }
 
-/* -------------------------
-  Render table
-   ------------------------- */
-function formatSpeedForDisplay(rawSpeed){
-  // rawSpeed stored as number (assume m/s)
-  const speedUnit = $('#speedUnit').value;
-  if (speedUnit === "ms") {
-    return `${rawSpeed.toFixed(2)} m/s`;
-  } else if (speedUnit === "mh") {
-    return `${(rawSpeed * 3600).toFixed(2)} m/h`;
-  } else if (speedUnit === "kmh") {
-    return `${(rawSpeed * 3.6).toFixed(2)} km/h`;
-  } else if (speedUnit === "cms") {
-    return `${(rawSpeed * 100).toFixed(2)} cm/s`;
-  }
-  return rawSpeed.toString();
-}
-
-function safeParseDateOnly(dateStr){
-  // parse date string like 'YYYY-MM-DD' or localized -> new Date(dateStr) works for ISO input
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? null : d;
-}
-
-function safeParseTimeOnly(timeStr){
-  if (!timeStr) return null;
-  // accept HH:MM or HH:MM:SS
-  const parts = timeStr.split(":").map(p=>Number(p));
-  if (parts.length < 2 || parts.some(isNaN)) return null;
-  return { h: parts[0], m: parts[1], s: parts[2]||0 };
-}
-
-function buildCombinedDateTime(dateStr, timeStr){
-  const d = safeParseDateOnly(dateStr);
-  const t = safeParseTimeOnly(timeStr);
-  if (!d) return null;
-  if (!t) return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, t.s);
-}
-
-function renderTable(data){
+function renderTable(data) {
   currentFilteredData = data;
-  const tbody = $("#trainTable tbody");
+  const tbody = document.querySelector("#trainTable tbody");
   tbody.innerHTML = "";
-  data.forEach(row => {
-    const speedText = formatSpeedForDisplay(Number(row["Vận Tốc"]));
-    const ngayDen = row["Ngày Đến"] ? (buildCombinedDateTime(row["Ngày Đến"], row["Giờ Đến"])?.toLocaleDateString('vi-VN') ?? "") : "";
-    const gioDen = row["Giờ Đến"] ? (buildCombinedDateTime(row["Ngày Đến"], row["Giờ Đến"])?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}) ?? "") : "";
-    const ngayRoi = row["Ngày Rời"] ? (buildCombinedDateTime(row["Ngày Rời"], row["Giờ Rời"])?.toLocaleDateString('vi-VN') ?? "") : "";
-    const gioRoi = row["Giờ Rời"] ? (buildCombinedDateTime(row["Ngày Rời"], row["Giờ Rời"])?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}) ?? "") : "";
+  const speedUnit = document.getElementById("speedUnit").value;
 
-    const tr = document.createElement('tr');
+  data.forEach(row => {
+    let speed = Number(row["Vận Tốc"]);
+    if (speedUnit === "ms") {
+      speed = speed.toFixed(2) + " m/s";
+    } else if (speedUnit === "mh") {
+      speed = (speed * 3600).toFixed(2) + " m/h";
+    } else if (speedUnit === "kmh") {
+      speed = (speed / 1000 * 3600).toFixed(2) + " km/h";
+    } else if (speedUnit === "cms") {
+      speed = (speed * 100).toFixed(2) + " cm/s";
+    }
+	  
+    const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN");
+    const gioDen = new Date(row["Giờ Đến"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN");
+    const gioRoi = new Date(row["Giờ Rời"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+
+    const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${row["STT"] ?? ""}</td>
-      <td>${row["Tên Tàu"] ?? ""}</td>
-      <td>${row["Tuyến"] ?? ""}</td>
-      <td>${row["Trạm"] ?? ""}</td>
-      <td>${speedText}</td>
+      <td>${row["STT"]}</td>
+      <td>${row["Tên Tàu"]}</td>
+      <td>${row["Tuyến"]}</td>
+      <td>${row["Trạm"]}</td>
+      <td>${speed}</td>
       <td>${ngayDen}</td>
       <td>${gioDen}</td>
       <td>${ngayRoi}</td>
       <td>${gioRoi}</td>
-      <td>${row["Trạng Thái"] ?? ""}</td>
+      <td>${row["Trạng Thái"]}</td>
     `;
+    // Apply fade-in animation with staggered delay
+    // tr.style.opacity = "0";
+    // tr.style.animation = "fadeIn 0.4s ease-out forwards";
+    // tr.style.animationDelay = `${row["STT"] * 0.01}s`;
     tbody.appendChild(tr);
   });
 }
 
-/* -------------------------
-  Filter & search
-   ------------------------- */
-const debouncedFilter = debounce(filterAndSearch, 220);
-
-function filterAndSearch(){
-  const searchValue = $('#searchInput').value.trim().toLowerCase();
-  const tenTauFilter = $('#filterTenTau').value;
-  const tuyenFilter = $('#filterTuyen').value;
-  const dateFromValue = $('#dateFrom').value;
-  const dateToValue = $('#dateTo').value;
-  const timeFromValue = $('#timeFrom').value;
-  const timeToValue = $('#timeTo').value;
-
-  const dateFrom = dateFromValue ? new Date(dateFromValue) : null;
-  const dateTo = dateToValue ? (() => { const d = new Date(dateToValue); d.setHours(23,59,59,999); return d; })() : null;
-  const timeFromParts = safeParseTimeOnly(timeFromValue);
-  const timeToParts = safeParseTimeOnly(timeToValue);
+function filterAndSearch() {
+  const searchValue = document.getElementById("searchInput").value.toLowerCase();
+  const tenTauFilter = document.getElementById("filterTenTau").value;
+  const tuyenFilter = document.getElementById("filterTuyen").value;
+  const dateFromValue = document.getElementById("dateFrom").value;
+  const dateToValue = document.getElementById("dateTo").value;
+  const timeFromValue = document.getElementById("timeFrom").value;
+  const timeToValue = document.getElementById("timeTo").value;
 
   const filtered = originalData.filter(item => {
-    // search across text fields
-    const matchSearch = !searchValue || Object.values(item).some(v => String(v || '').toLowerCase().includes(searchValue));
-    if (!matchSearch) return false;
-
+    const matchSearch = Object.values(item).some(val =>
+      String(val).toLowerCase().includes(searchValue)
+    );
     const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
     const matchTuyen = !tuyenFilter || item["Tuyến"] === tuyenFilter;
-    if (!matchTenTau || !matchTuyen) return false;
+    let matchDateTime = true;
 
-    // date-time filtering (use Ngày Đến + Giờ Đến)
-    if (dateFrom || dateTo || timeFromParts || timeToParts) {
-      const combined = buildCombinedDateTime(item["Ngày Đến"], item["Giờ Đến"]);
-      if (!combined) return false;
-      if (dateFrom && combined < dateFrom) return false;
-      if (dateTo && combined > dateTo) return false;
-      if (timeFromParts) {
-        const t = combined.getHours()*3600 + combined.getMinutes()*60 + combined.getSeconds();
-        const tf = timeFromParts.h*3600 + timeFromParts.m*60 + (timeFromParts.s||0);
-        if (t < tf) return false;
+    if (dateFromValue || dateToValue || timeFromValue || timeToValue) {
+      const date = new Date(item["Ngày Đến"]);
+      const time = new Date(item["Giờ Đến"]);
+      const combinedDateTime = new Date(
+        date.getFullYear(), date.getMonth(), date.getDate(),
+        time.getHours(), time.getMinutes(), time.getSeconds()
+      );
+      if (dateFromValue) {
+        const dateFrom = new Date(dateFromValue);
+        if (combinedDateTime < dateFrom) matchDateTime = false;
       }
-      if (timeToParts) {
-        const t = combined.getHours()*3600 + combined.getMinutes()*60 + combined.getSeconds();
-        const tt = timeToParts.h*3600 + timeToParts.m*60 + (timeToParts.s||0);
-        if (t > tt) return false;
+      if (dateToValue) {
+        const dateTo = new Date(dateToValue);
+        dateTo.setHours(23,59,59,999);
+        if (combinedDateTime > dateTo) matchDateTime = false;
+      }
+      if (timeFromValue) {
+        const [h,m] = timeFromValue.split(":");
+        if (combinedDateTime.getHours() < +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() < +m)) {
+          matchDateTime = false;
+        }
+      }
+      if (timeToValue) {
+        const [h,m] = timeToValue.split(":");
+        if (combinedDateTime.getHours() > +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() > +m)) {
+          matchDateTime = false;
+        }
       }
     }
-
-    return true;
+    return matchSearch && matchTenTau && matchTuyen && matchDateTime;
   });
 
   renderTable(filtered);
 }
 
-/* -------------------------
-  Sorting
-   ------------------------- */
-function sortBy(key){
-  if (!key) return; // ignore if no key
-  const asc = (currentSort.key === key) ? !currentSort.asc : true;
+function sortBy(key) {
+  const asc = currentSort.key === key ? !currentSort.asc : true;
   currentSort = { key, asc };
 
-  const sorted = [...currentFilteredData].sort((a,b) => {
-    let va = a[key];
-    let vb = b[key];
-
-    // Try numeric
-    const na = Number(va);
-    const nb = Number(vb);
-    if (!isNaN(na) && !isNaN(nb)) {
-      return asc ? na - nb : nb - na;
+  const sorted = [...currentFilteredData].sort((a, b) => {
+    let valA = a[key];
+    let valB = b[key];
+    if (!isNaN(valA) && !isNaN(valB)) {
+      valA = Number(valA);
+      valB = Number(valB);
     }
-
-    // Try date-time (for fields like "Ngày Đến" + "Giờ Đến" combine)
-    if (key === "Ngày Đến" || key === "Giờ Đến") {
-      const da = buildCombinedDateTime(a["Ngày Đến"], a["Giờ Đến"]);
-      const db = buildCombinedDateTime(b["Ngày Đến"], b["Giờ Đến"]);
-      if (da && db) return asc ? da - db : db - da;
-    }
-    if (key === "Ngày Rời" || key === "Giờ Rời") {
-      const da = buildCombinedDateTime(a["Ngày Rời"], a["Giờ Rời"]);
-      const db = buildCombinedDateTime(b["Ngày Rời"], b["Giờ Rời"]);
-      if (da && db) return asc ? da - db : db - da;
-    }
-
-    // fallback string compare
-    va = String(va ?? "").toLowerCase();
-    vb = String(vb ?? "").toLowerCase();
-    if (va === vb) return 0;
-    return asc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+    return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
   });
 
   renderTable(sorted);
 }
+  
+let servoState = null;
+let autoState = null;
 
-/* -------------------------
-  WebSocket (basic resilient)
-   ------------------------- */
-function setupWebSocket(){
-  try {
-    const url = "wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS";
-    ws = new WebSocket(url);
-
-    ws.addEventListener('open', () => {
-      console.log("WebSocket connected.");
-      // ask for states in a consistent way
-      try {
-        ws.send(JSON.stringify({type:'get', key:'servo'}));
-        ws.send(JSON.stringify({type:'get', key:'auto'}));
-      } catch(e) { console.warn("WS send error:", e); }
-      // replace loading text
-      $('#servoToggle').textContent = 'Tải trạng thái...';
-      $('#autoToggle').textContent = 'Tải trạng thái...';
-    });
-
-    ws.addEventListener('message', (ev) => {
-      const raw = ev.data;
-      // handle plain text or JSON
-      try {
-        const parsed = JSON.parse(raw);
-        handleWsMessage(parsed);
-      } catch(err) {
-        // fallback to text parsing used previously
-        handleWsMessageText(raw);
-      }
-    });
-
-    ws.addEventListener('close', () => {
-      console.warn("WebSocket disconnected. Reconnecting in 5s...");
-      setTimeout(setupWebSocket, 5000);
-    });
-
-    ws.addEventListener('error', (err) => {
-      console.error("WebSocket error:", err);
-      if (ws) ws.close();
-    });
-  } catch (err) {
-    console.error("WebSocket setup failed:", err);
-  }
-}
-
-function handleWsMessageText(text){
-  console.log("WS text message:", text);
-  if (text === "front-end update") {
-    fetchDataAndRender();
-    return;
-  }
-  if (text.startsWith("servo is")) {
-    const parts = text.split(" ");
-    servoState = Number(parts[2]) || 0;
-    updateServoUI();
-    return;
-  }
-  if (text.startsWith("auto is")) {
-    const parts = text.split(" ");
-    autoState = Number(parts[2]) || 0;
-    updateAutoUI();
-    return;
-  }
-}
-
-function handleWsMessage(obj){
-  console.log("WS JSON message:", obj);
-  if (!obj || !obj.type) return;
-  if (obj.type === 'update') {
-    if (obj.key === 'data') fetchDataAndRender();
-    else if (obj.key === 'servo') {
-      servoState = Number(obj.value);
-      updateServoUI();
-    } else if (obj.key === 'auto') {
-      autoState = Number(obj.value);
-      updateAutoUI();
+function setupWebSocket() {
+  ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
+  ws.onopen = () => {
+    console.log("WebSocket connected.");
+    ws.send("servo state sync");
+    ws.send("auto state sync");
+  };
+  ws.onmessage = (event) => {
+    console.log("WebSocket message received:", event.data);
+    if (event.data === "front-end update") {
+      fetchDataAndRender();
     }
-  }
+    if (event.data.startsWith("servo is")) {
+      const parts = event.data.split(" ");
+      servoState = parseInt(parts[2], 10);
+      updateServoUI();
+    }
+    if (event.data.startsWith("auto is")) {
+      const parts = event.data.split(" ");
+      autoState = parseInt(parts[2], 10);
+      updateautoUI();
+    }
+  };
+  ws.onclose = () => {
+    console.warn("WebSocket disconnected. Reconnecting in 5s...");
+    setTimeout(setupWebSocket, 5000);
+  };
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+    ws.close();
+  };
 }
 
-/* -------------------------
-  Servo / Auto UI + controls
-   ------------------------- */
-const servoToggleButton = $('#servoToggle');
-const servoStateLabel = $('#servoStateLabel');
-const servoImg = $('#servoStateLabelImg');
-
-servoToggleButton.addEventListener('click', () => {
-  if (!ws || ws.readyState !== WebSocket.OPEN || servoState === null) {
-    console.warn("WebSocket not ready or servo state unknown.");
-    return;
-  }
-  // Toggle: if 0 -> close (send 1?), keep semantics consistent with server
-  const next = servoState === 0 ? 1 : 0;
-  try {
-    ws.send(JSON.stringify({type:'set', key:'servo', value: next}));
-  } catch(err){ console.warn("WS send failed:", err); }
-});
-
-function updateServoUI(){
-  if (servoState === 0) {
-    servoToggleButton.textContent = "Hạ barrier";
-    servoToggleButton.style.backgroundColor = "#f37021";
-    servoStateLabel.textContent = "Mở";
-    servoStateLabel.style.backgroundColor = "#51b848";
-    if (servoImg) servoImg.src = "./Barrier Open.png";
-    servoToggleButton.setAttribute('aria-pressed', 'false');
-  } else if (servoState === 1) {
-    servoToggleButton.textContent = "Nâng barrier";
-    servoToggleButton.style.backgroundColor = "#51b848";
-    servoStateLabel.textContent = "Đóng";
-    servoStateLabel.style.backgroundColor = "#f37021";
-    if (servoImg) servoImg.src = "./Barrier Close.png";
-    servoToggleButton.setAttribute('aria-pressed', 'true');
-  } else {
-    servoToggleButton.textContent = "Trạng thái không rõ";
-  }
-}
-
-const autoToggleButton = $('#autoToggle');
-const autoStateLabel = $('#autoStateLabel');
-
-autoToggleButton.addEventListener('click', () => {
-  if (!ws || ws.readyState !== WebSocket.OPEN || autoState === null) {
-    console.warn("WebSocket not ready or auto state unknown.");
-    return;
-  }
-  // toggle value
-  const next = autoState === 1 ? 0 : 1;
-  try {
-    ws.send(JSON.stringify({type:'set', key:'auto', value: next}));
-  } catch(err) { console.warn("WS send failed:", err); }
-});
-
-function updateAutoUI(){
-  if (autoState === 0) {
-    autoToggleButton.textContent = "MANUAL";
-    autoToggleButton.style.backgroundColor = "#f37021";
-    autoStateLabel.textContent = "AUTO";
-    autoStateLabel.style.backgroundColor = "#51b848";
-    autoToggleButton.setAttribute('aria-pressed','false');
-  } else if (autoState === 1) {
-    autoToggleButton.textContent = "AUTO";
-    autoToggleButton.style.backgroundColor = "#51b848";
-    autoStateLabel.textContent = "MANUAL";
-    autoStateLabel.style.backgroundColor = "#f37021";
-    autoToggleButton.setAttribute('aria-pressed','true');
-  } else {
-    autoToggleButton.textContent = "Trạng thái không rõ";
-  }
-}
-
-/* -------------------------
-  Settings form
-   ------------------------- */
-const toggleBtn = document.querySelector('.toggle-form-btn');
-const form = document.getElementById('settingsForm');
-
-toggleBtn.addEventListener('click', () => {
-  form.classList.toggle('hidden');
-  const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
-  toggleBtn.setAttribute('aria-expanded', String(!expanded));
-  form.setAttribute('aria-hidden', String(expanded));
-});
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const distance = $('#distance').value;
-  const delay1 = $('#delay1').value;
-  const delay2 = $('#delay2').value;
-  console.log("Submitted values:", { distance, delay1, delay2 });
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    try {
-      ws.send(JSON.stringify({type:'set', key:'distance', value: Number(distance)}));
-      ws.send(JSON.stringify({type:'set', key:'delay1', value: Number(delay1)}));
-      ws.send(JSON.stringify({type:'set', key:'delay2', value: Number(delay2)}));
-    } catch(e){ console.warn("WS send error:", e); }
-  } else {
-    console.warn("WebSocket is not open.");
-  }
-});
-
-/* -------------------------
-  Export helpers
-   ------------------------- */
-function exportExcel(){
+function exportExcel() {
   const ws_data = [
     ["STT","Tên Tàu","Tuyến","Trạm","Vận Tốc","Ngày Đến","Giờ Đến","Ngày Rời","Giờ Rời","Trạng Thái"],
     ...currentFilteredData.map(row => [
@@ -782,18 +699,18 @@ function exportExcel(){
     ])
   ];
   const wb = XLSX.utils.book_new();
-  const ws2 = XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb, ws2, "Data");
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, "Data");
   XLSX.writeFile(wb, "TrainData.xlsx");
 }
 
-async function exportPDF(){
+async function exportPDF() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('l', 'pt', 'a4');
   const table = document.querySelector("#trainTable");
-  await html2canvas(table, {scale:1}).then(canvas => {
+  await html2canvas(table).then(canvas => {
     const imgData = canvas.toDataURL('image/png');
-    const imgProps = pdf.getImageProperties(imgData);
+    const imgProps= pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
@@ -801,41 +718,130 @@ async function exportPDF(){
   });
 }
 
-/* -------------------------
-  Charts
-   ------------------------- */
+const servoToggleButton = document.getElementById("servoToggle");
+const servoStateLabel = document.getElementById("servoStateLabel");
+
+servoToggleButton.addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN && servoState !== null) {
+    if (servoState === 0) {
+      ws.send("servo close");
+    } else {
+      ws.send("servo open");
+    }
+  }
+});
+  
+function updateServoUI() {
+  if (servoState === 0) {
+    servoToggleButton.textContent = "Hạ barrier";
+    servoToggleButton.style.backgroundColor = "#f37021";
+    servoStateLabel.textContent = "Mở";
+    servoStateLabel.style.backgroundColor = "#51b848";
+    document.getElementById("servoSatateLabelImg").src = "./Barrier Open.png"
+  } else if (servoState === 1) {
+    servoToggleButton.textContent = "Nâng barrier";
+    servoToggleButton.style.backgroundColor = "#51b848";
+    servoStateLabel.textContent = "Đóng";
+    servoStateLabel.style.backgroundColor = "#f37021";
+    document.getElementById("servoSatateLabelImg").src = "./Barrier Close.png"
+  }
+}
+
+const autoToggleButton = document.getElementById("autoToggle");
+const autoStateLabel = document.getElementById("autoStateLabel");
+
+autoToggleButton.addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
+    if (autoState === 0) {
+      ws.send("auto off");
+    } 
+    if (autoState === 1) {
+      ws.send("auto on");
+    }
+  }
+});
+  
+function updateautoUI() {
+  if (autoState === 0) {
+    autoToggleButton.textContent = "MANUAL";
+    autoToggleButton.style.backgroundColor = "#f37021";
+    autoStateLabel.textContent = "AUTO";
+    autoStateLabel.style.backgroundColor = "#51b848";
+  } else if (autoState === 1) {
+    autoToggleButton.textContent = "AUTO";
+    autoToggleButton.style.backgroundColor = "#51b848";
+    autoStateLabel.textContent = "MANUAL";
+    autoStateLabel.style.backgroundColor = "#f37021";
+  }
+}
+
+const toggleBtn = document.querySelector('.toggle-form-btn');
+const form = document.getElementById('settingsForm');
+
+toggleBtn.addEventListener('click', () => {
+  form.classList.toggle('hidden');
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const distance = document.getElementById('distance').value;
+  const delay1 = document.getElementById('delay1').value;
+  const delay2 = document.getElementById('delay2').value;
+  
+  console.log("Submitted values:", { distance, delay1, delay2 });
+  
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		ws.send("distance " + distance);
+		ws.send("delay1 " + delay1);
+		ws.send("delay2 " + delay2);
+	} else {
+		console.warn("WebSocket is not open.");
+	}
+});
+
+document.getElementById("searchInput").addEventListener("input", filterAndSearch);
+document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
+document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
+document.getElementById("speedUnit").addEventListener("change", () => {
+  localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
+  renderTable(currentFilteredData);
+});
+document.getElementById("dateFrom").addEventListener("change", filterAndSearch);
+document.getElementById("dateTo").addEventListener("change", filterAndSearch);
+document.getElementById("timeFrom").addEventListener("change", filterAndSearch);
+document.getElementById("timeTo").addEventListener("change", filterAndSearch);
+document.querySelectorAll("#trainTable th").forEach(th => {
+  th.addEventListener("click", () => sortBy(th.dataset.key));
+});
+document.getElementById("exportExcel").addEventListener("click", exportExcel);
+document.getElementById("exportPDF").addEventListener("click", exportPDF);
+
 let avgSpeedChartInstance = null;
 let tripCountChartInstance = null;
 let speedPerDayChartInstance = null;
+  
 const trainColorMap = {};
 
-function hashColor(str) {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) hash = (hash * 33) ^ str.charCodeAt(i);
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 70%, 50%)`;
-}
+function renderCharts() {
+  // Destroy old charts
+  if (avgSpeedChartInstance) avgSpeedChartInstance.destroy();
+  if (tripCountChartInstance) tripCountChartInstance.destroy();
+  if (speedPerDayChartInstance) speedPerDayChartInstance.destroy();
 
-function renderCharts(){
-  try {
-    if (avgSpeedChartInstance) { avgSpeedChartInstance.destroy(); avgSpeedChartInstance = null; }
-    if (tripCountChartInstance) { tripCountChartInstance.destroy(); tripCountChartInstance = null; }
-    if (speedPerDayChartInstance) { speedPerDayChartInstance.destroy(); speedPerDayChartInstance = null; }
-  } catch(e){ console.warn("Error destroying charts:", e); }
-
-  // 1. Avg speed per train
+  // --- 1. Average speed per train ---
   const trainSpeeds = {};
   const trainCounts = {};
+
   originalData.forEach(item => {
-    const train = item["Tên Tàu"] ?? "(unknown)";
-    const speed = Number(item["Vận Tốc"]) || 0;
+    const train = item["Tên Tàu"];
+    const speed = Number(item["Vận Tốc"]);
     trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
     trainCounts[train] = (trainCounts[train] || 0) + 1;
   });
 
   const trainNames = Object.keys(trainSpeeds);
-  const avgSpeeds = trainNames.map(n => ((trainSpeeds[n] || 0) / (trainCounts[n] || 1)).toFixed(2));
-  const globalAvgSpeed = trainNames.length ? (avgSpeeds.reduce((s,v)=>s+parseFloat(v),0)/avgSpeeds.length).toFixed(2) : 0;
+  const avgSpeeds = trainNames.map(name => (trainSpeeds[name]/trainCounts[name]).toFixed(2));
+  const globalAvgSpeed = (avgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / avgSpeeds.length).toFixed(2);
 
   const ctxAvgSpeed = document.getElementById('avgSpeedChart').getContext('2d');
   avgSpeedChartInstance = new Chart(ctxAvgSpeed, {
@@ -843,12 +849,13 @@ function renderCharts(){
     data: {
       labels: trainNames,
       datasets: [{
-        label: 'Tốc Độ Trung Bình (m/s)',
+        label: 'Tốc Độ Trung Bình (km/h)',
         data: avgSpeeds,
         backgroundColor: trainNames.map(name => hashColor(name)),
         barThickness: 20,
         maxBarThickness: 20
-      }, {
+      },
+                 {
         label: 'Tốc độ TB tất cả tàu',
         type: 'line',
         data: Array(avgSpeeds.length).fill(globalAvgSpeed),
@@ -858,72 +865,119 @@ function renderCharts(){
         pointRadius: 0
       }]
     },
-    options: { responsive:true, scales: { y: { beginAtZero:true } } }
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
   });
 
-  // 2. Trip count per train
+  // --- 2. Trip count per train ---
   const tripCounts = trainCounts;
-  const globalTripAvg = Object.keys(tripCounts).length ? (Object.values(tripCounts).reduce((a,b)=>a+b,0) / Object.values(tripCounts).length).toFixed(2) : 0;
+  const globalTripAvg = (Object.values(tripCounts).reduce((a, b) => a + b, 0) / Object.values(tripCounts).length).toFixed(2);
+
   const ctxTripCount = document.getElementById('tripCountChart').getContext('2d');
   tripCountChartInstance = new Chart(ctxTripCount, {
-    type:'bar',
-    data:{ labels: Object.keys(tripCounts), datasets: [{
-      label:'Số Chuyến',
-      data: Object.values(tripCounts),
-      backgroundColor: Object.keys(tripCounts).map(name => hashColor(name)),
-      barThickness:20, maxBarThickness:20
-    }, {
-      label: 'Số chuyến TB tất cả tàu',
-      type:'line',
-      data: Array(Object.keys(tripCounts).length).fill(globalTripAvg),
-      borderColor:'red', borderWidth:2, fill:false, pointRadius:0
-    }]},
-    options:{ responsive:true, scales: { y: { beginAtZero:true } } }
+    type: 'bar',
+    data: {
+      labels: Object.keys(tripCounts),
+      datasets: [{
+        label: 'Số Chuyến',
+        data: Object.values(tripCounts),
+        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name)),
+        barThickness: 20,
+        maxBarThickness: 20
+      },
+                 {
+        label: 'Số chuyến TB tất cả tàu',
+        type: 'line',
+        data: Array(Object.keys(tripCounts).length).fill(globalTripAvg),
+        borderColor: 'red',
+        borderWidth: 2,
+        fill: false,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
   });
 
-  // 3. Speed per day per train
+  // --- 3. Average speed per day per train ---
   const trainDateSpeedMap = {};
+
   originalData.forEach(item => {
-    const train = item["Tên Tàu"] ?? "(unknown)";
-    const date = item["Ngày Đến"] ? new Date(item["Ngày Đến"]).toISOString().split("T")[0] : null;
-    const speed = Number(item["Vận Tốc"]) || 0;
-    if (!date) return;
+    const train = item["Tên Tàu"];
+    const date = new Date(item["Ngày Đến"]).toISOString().split("T")[0];
+    const speed = Number(item["Vận Tốc"]);
     const key = train + "_" + date;
-    if (!trainDateSpeedMap[key]) trainDateSpeedMap[key] = { sum:0, count:0 };
+    if (!trainDateSpeedMap[key]) {
+      trainDateSpeedMap[key] = { sum: 0, count: 0 };
+    }
     trainDateSpeedMap[key].sum += speed;
     trainDateSpeedMap[key].count += 1;
   });
 
+  // Build datasets per train
   const trainDateGroups = {};
-  Object.keys(trainDateSpeedMap).forEach(k => {
-    const [train, date] = k.split("_");
+  Object.keys(trainDateSpeedMap).forEach(key => {
+    const [train, date] = key.split("_");
     if (!trainDateGroups[train]) trainDateGroups[train] = {};
-    trainDateGroups[train][date] = (trainDateSpeedMap[k].sum / trainDateSpeedMap[k].count).toFixed(2);
+    trainDateGroups[train][date] = (trainDateSpeedMap[key].sum / trainDateSpeedMap[key].count).toFixed(2);
   });
 
+  // Collect all unique dates
   const allDatesSet = new Set();
-  Object.values(trainDateGroups).forEach(obj => Object.keys(obj).forEach(d => allDatesSet.add(d)));
+  Object.values(trainDateGroups).forEach(obj => {
+    Object.keys(obj).forEach(date => allDatesSet.add(date));
+  });
   const allDates = Array.from(allDatesSet).sort();
 
   const datasets = Object.keys(trainDateGroups).map(train => {
-    if (!trainColorMap[train]) trainColorMap[train] = hashColor(train);
+    if (!trainColorMap[train]) {
+      trainColorMap[train] = hashColor(train);
+    }
     return {
       label: train,
-      data: allDates.map(date => trainDateGroups[train][date] ?? null),
+      data: allDates.map(date => trainDateGroups[train][date] || null),
       fill: false,
       borderColor: trainColorMap[train],
       tension: 0.1
     };
   });
 
-  // global daily avg
-  let totalSum = 0, totalCount = 0;
+  const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
+  speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
+    type: 'line',
+    data: {
+      labels: allDates,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+  // Calculate average of all values (excluding nulls)
+  let totalSum = 0;
+  let totalCount = 0;
   Object.values(trainDateGroups).forEach(trainData => {
-    Object.values(trainData).forEach(v => {
-      if (v !== null && v !== undefined) { totalSum += parseFloat(v); totalCount++; }
+    Object.values(trainData).forEach(val => {
+      if (val !== null && val !== undefined) {
+        totalSum += parseFloat(val);
+        totalCount++;
+      }
     });
   });
-  const globalDailyAvg = totalCount ? (totalSum / totalCount).toFixed(2) : 0;
+  const globalDailyAvg = (totalSum / totalCount).toFixed(2);
+  
+  // Add red average line
   datasets.push({
     label: 'Tốc độ TB tất cả tàu mỗi ngày',
     data: Array(allDates.length).fill(globalDailyAvg),
@@ -931,48 +985,14 @@ function renderCharts(){
     borderWidth: 2,
     fill: false,
     pointRadius: 0,
-    borderDash: [5,5]
-  });
-
-  const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
-  speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
-    type: 'line',
-    data: { labels: allDates, datasets },
-    options: { responsive:true, scales: { y: { beginAtZero:true } } }
+    borderDash: [5, 5]
   });
 }
 
-/* -------------------------
-  Wire up simple UI events
-   ------------------------- */
-$('#searchInput').addEventListener('input', debouncedFilter);
-$('#filterTenTau').addEventListener('change', filterAndSearch);
-$('#filterTuyen').addEventListener('change', filterAndSearch);
-$('#speedUnit').addEventListener('change', () => {
-  localStorage.setItem("speedUnit", $('#speedUnit').value);
-  renderTable(currentFilteredData);
-});
-$('#dateFrom').addEventListener('change', filterAndSearch);
-$('#dateTo').addEventListener('change', filterAndSearch);
-$('#timeFrom').addEventListener('change', filterAndSearch);
-$('#timeTo').addEventListener('change', filterAndSearch);
-$('#exportExcel').addEventListener('click', exportExcel);
-$('#exportPDF').addEventListener('click', exportPDF);
-
-/* sort headers */
-$all("#trainTable th").forEach(th => {
-  th.addEventListener('click', () => {
-    sortBy(th.dataset.key);
-  });
-});
-
-/* -------------------------
-  Init
-   ------------------------- */
+applySavedUnits();
 fetchDataAndRender();
 setupWebSocket();
-// Optionally refresh periodically (commented out)
-// setInterval(fetchDataAndRender, 60000);
+//setInterval(fetchDataAndRender, 60000);
 </script>
 
 </body>
