@@ -852,7 +852,8 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
     table = new Table({
       rows: [headerRow, ...dataRows],
-      width: { size: 100, type: WidthType.PERCENTAGE }
+      width: { size: 100, type: WidthType.PERCENTAGE },
+	  alignment: AlignmentType.CENTER
     });
   }
 
