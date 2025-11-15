@@ -860,6 +860,16 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   // === DOCUMENT ===
   const doc = new Document({
     sections: [{
+		  properties: {
+	      page: {
+	        margin: {
+	          top: 720,     // 0.5 inch
+	          bottom: 720,  // 0.5 inch
+	          left: 720,    // 0.5 inch
+	          right: 720    // 0.5 inch
+	        }
+	      }
+	    },
       children: [
         header1, header2, dateLine, title,
         ...infoParagraphs,
