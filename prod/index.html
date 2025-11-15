@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -388,7 +387,7 @@
     	    <button id="servoToggle">Đang tải trạng thái...</button>
     	  </div>
       </div>
-      <!-- <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;">
+      <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;">
         <div>
           <span>Trạng thái hệ thống tự động</span>
     	    <span id="autoStateLabel"></span>
@@ -397,7 +396,7 @@
     	    <span>Điều khiển hệ thống tự động</span>
     	    <button id="autoToggle">Đang tải trạng thái...</button>
     	  </div>
-      </div> -->
+      </div>
     </div>
   </div>
   <div>
@@ -683,122 +682,25 @@ function setupWebSocket() {
 }
 
 function exportExcel() {
-    const data = currentFilteredData; // dữ liệu đang hiển thị
-    if (!data || data.length === 0) {
-        alert("Không có dữ liệu để xuất!");
-        return;
-    }
-
-    // Chuẩn bị dữ liệu bảng
-    const tableData = [
-        ["STT", "Tên Tàu", "Tuyến", "Trạm", "Vận Tốc", "Ngày Đến", "Giờ Đến", "Ngày Rời", "Giờ Rời", "Trạng Thái"]
-    ];
-
-    data.forEach(row => {
-        tableData.push([
-            row["STT"],
-            row["Tên Tàu"],
-            row["Tuyến"],
-            row["Trạm"],
-            row["Vận Tốc"],
-            new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN"),
-            new Date(row["Giờ Đến"]).toLocaleTimeString("vi-VN"),
-            new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN"),
-            new Date(row["Giờ Rời"]).toLocaleTimeString("vi-VN"),
-            row["Trạng Thái"]
-        ]);
-    });
-
-    // === TẠO WORKBOOK ===
-    const wb = XLSX.utils.book_new();
-
-    // Tạo sheet trống
-    const ws = XLSX.utils.aoa_to_sheet([]);
-
-    // ==== HEADER BÁO CÁO ====
-    const now = new Date();
-    const ngay = now.getDate();
-    const thang = now.getMonth() + 1;
-    const nam = now.getFullYear();
-
-    const leftHeader = [
-        ["TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", "", "", "", "", "", "", "", "", ""],
-        ["KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", "", "", "", "", "", "", "", "", ""],
-    ];
-
-    const rightHeader = [
-        ["CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", "", "", "", "", "", "", "", "", ""],
-        ["Độc lập - Tự do - Hạnh phúc", "", "", "", "", "", "", "", "", ""],
-    ];
-
-    const dateLine = [
-        ["", "", "", "", "", "", "", "", "", `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`]
-    ];
-
-    const title = [
-        ["BẢNG THÔNG TIN TÀU CHẠY", "", "", "", "", "", "", "", "", ""]
-    ];
-
-    const stationLine = [
-        ["", "", "", "TRẠM:", "252 Lý Chính Thắng", "", "", "", "", ""]
-    ];
-
-    const trainInfo = [
-        ["Mã tàu", data[0]["Tên Tàu"], "", "", "", "Từ ngày", document.getElementById("dateFrom").value || "", "", "Đến ngày", document.getElementById("dateTo").value || ""]
-    ];
-
-    // Ghi dữ liệu header vào sheet
-    let rowIndex = 1;
-    function addRows(block) {
-        block.forEach(r => {
-            XLSX.utils.sheet_add_aoa(ws, [r], { origin: `A${rowIndex}` });
-            rowIndex++;
-        });
-    }
-
-    addRows(leftHeader);
-    addRows(rightHeader);
-    rowIndex++; // dòng trống
-    addRows(dateLine);
-    rowIndex++;
-    addRows(title);
-    rowIndex++;
-    addRows(stationLine);
-    rowIndex++;
-    addRows(trainInfo);
-    rowIndex += 2;
-
-    // ==== BẢNG DỮ LIỆU ====
-    XLSX.utils.sheet_add_aoa(ws, tableData, { origin: `A${rowIndex}` });
-
-    // ==== MERGE & STYLE ====
-    ws["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } },
-
-        { s: { r: 0, c: 5 }, e: { r: 0, c: 9 } },
-        { s: { r: 1, c: 5 }, e: { r: 1, c: 9 } },
-
-        { s: { r: 3, c: 9 }, e: { r: 3, c: 9 } },
-
-        { s: { r: 5, c: 0 }, e: { r: 5, c: 9 } },
-
-        { s: { r: 7, c: 3 }, e: { r: 7, c: 4 } },
-
-        { s: { r: 9, c: 1 }, e: { r: 9, c: 2 } }
-    ];
-
-    // Auto width
-    ws["!cols"] = [
-        { wch: 6 }, { wch: 12 }, { wch: 15 }, { wch: 22 },
-        { wch: 10 }, { wch: 12 }, { wch: 10 },
-        { wch: 12 }, { wch: 10 }, { wch: 12 }
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
-
-    // Xuất file
-    XLSX.writeFile(wb, "Bao_cao_thong_tin_tau.xlsx");
+  const ws_data = [
+    ["STT","Tên Tàu","Tuyến","Trạm","Vận Tốc","Ngày Đến","Giờ Đến","Ngày Rời","Giờ Rời","Trạng Thái"],
+    ...currentFilteredData.map(row => [
+      row["STT"],
+      row["Tên Tàu"],
+      row["Tuyến"],
+      row["Trạm"],
+      row["Vận Tốc"],
+      row["Ngày Đến"],
+      row["Giờ Đến"],
+      row["Ngày Rời"],
+      row["Giờ Rời"],
+      row["Trạng Thái"]
+    ])
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, "Data");
+  XLSX.writeFile(wb, "TrainData.xlsx");
 }
 
 async function exportPDF() {
