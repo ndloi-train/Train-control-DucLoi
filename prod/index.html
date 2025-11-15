@@ -903,13 +903,13 @@ function updateServoUI() {
   if (servoState === 0) {
     servoToggleButton.textContent = "Hạ barrier";
     servoToggleButton.style.backgroundColor = "#f37021";
-    servoStateLabel.textContent = "Mở";
+    servoStateLabel.textContent = "Open";
     servoStateLabel.style.backgroundColor = "#51b848";
     document.getElementById("servoSatateLabelImg").src = "./Barrier Open.png"
   } else if (servoState === 1) {
     servoToggleButton.textContent = "Nâng barrier";
     servoToggleButton.style.backgroundColor = "#51b848";
-    servoStateLabel.textContent = "Đóng";
+    servoStateLabel.textContent = "Close";
     servoStateLabel.style.backgroundColor = "#f37021";
     document.getElementById("servoSatateLabelImg").src = "./Barrier Close.png"
   }
