@@ -765,7 +765,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   const header1 = new Paragraph({
     children: [
       new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true, size: 22 }),
-      new TextRun({ text: "             CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true, size: 22 })
+      new TextRun({ text: "				CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true, size: 22 })
     ],
     spacing: { after: 200 }
   });
@@ -773,7 +773,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   const header2 = new Paragraph({
     children: [
       new TextRun({ text: "KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true, size: 20 }),
-      new TextRun({ text: "                                      Độc lập - Tự do - Hạnh phúc", bold: true, size: 20 })
+      new TextRun({ text: "							Độc lập - Tự do - Hạnh phúc", bold: true, size: 20 })
     ],
     spacing: { after: 200 }
   });
