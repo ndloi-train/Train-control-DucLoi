@@ -735,9 +735,33 @@ servoToggleButton.addEventListener("click", () => {
 });
 
 async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
-  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, ShadingType } = docx;
+  const {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    WidthType, AlignmentType, BorderStyle, ShadingType
+  } = docx;
 
-  // Header & title
+  // 📌 Formatters
+  const formatDate = (val) => {
+    if (!val) return "";
+    const d = new Date(val);
+    if (isNaN(d)) return "";
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  };
+
+  const formatTime = (val) => {
+    if (!val) return "";
+    const d = new Date(val);
+    if (isNaN(d)) return "";
+    return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+  };
+
+  // 📌 Current date for header
+  const now = new Date();
+  const ngay = now.getDate();
+  const thang = now.getMonth() + 1;
+  const nam = now.getFullYear();
+
+  // === HEADER ===
   const header1 = new Paragraph({
     children: [
       new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true, size: 22 }),
@@ -756,7 +780,13 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
   const dateLine = new Paragraph({
     alignment: AlignmentType.RIGHT,
-    children: [new TextRun({ text: `TP.HCM, ngày …. tháng …. năm ….`, italics: true, size: 18 })],
+    children: [
+      new TextRun({
+        text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
+        italics: true,
+        size: 20
+      })
+    ],
     spacing: { after: 200 }
   });
 
@@ -766,7 +796,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
     spacing: { after: 300 }
   });
 
-  // Filter info
+  // === FILTER INFO ===
   const infoFields = [
     { label: "Tuyến", value: filterTuyenValue },
     { label: "Tên tàu", value: filterTenTauValue },
@@ -778,58 +808,73 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
   const infoParagraphs = infoFields
     .filter(f => f.value)
-    .map(f => new Paragraph({ text: `${f.label}: ${f.value}`, spacing: { after: 100 }, size: 18 }));
+    .map(f => new Paragraph({
+      text: `${f.label}: ${f.value}`,
+      spacing: { after: 100 },
+      size: 20
+    }));
 
-  // Table
+  // === TABLE ===
   let table = null;
   if (tableData && tableData.length > 0) {
     const keys = Object.keys(tableData[0]);
+    const colWidth = Math.floor(100 / keys.length); // spread evenly
 
-    // Header row
     const headerRow = new TableRow({
-      children: keys.map(k => new TableCell({
-        children: [new Paragraph({ text: k, bold: true, size: 20, alignment: AlignmentType.CENTER })],
-        shading: { type: ShadingType.CLEAR, color: "auto", fill: "FF6600" },
-        margins: { top: 100, bottom: 100, left: 100, right: 100 },
-        borders: { top: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, left: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, right: { style: BorderStyle.SINGLE, size: 1, color: "000000" } }
-      }))
+      children: keys.map(k =>
+        new TableCell({
+          children: [new Paragraph({ text: k, bold: true, alignment: AlignmentType.CENTER, size: 20 })],
+          shading: { fill: "FF6600" },
+          width: { size: colWidth, type: WidthType.PERCENTAGE },
+          margins: { top: 200, bottom: 200, left: 200, right: 200 }
+        })
+      )
     });
 
-    // Data rows with alternating shading
-    const dataRows = tableData.map((rowObj, idx) => new TableRow({
-      children: keys.map(k => new TableCell({
-        children: [new Paragraph({ text: String(rowObj[k] ?? ""), size: 18 })],
-        shading: { type: ShadingType.CLEAR, color: "auto", fill: idx % 2 === 0 ? "FFFFFF" : "FFF4E6" },
-        margins: { top: 100, bottom: 100, left: 100, right: 100 },
-        borders: { top: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, left: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, right: { style: BorderStyle.SINGLE, size: 1, color: "000000" } }
-      }))
-    }));
+    const dataRows = tableData.map((rowObj, idx) =>
+      new TableRow({
+        children: keys.map(k => {
+          let val = rowObj[k];
+
+          // ---- AUTO FORMAT DATE/TIME ----
+          if (k.includes("Giờ")) val = formatTime(val);
+          if (k.includes("Ngày")) val = formatDate(val);
+
+          return new TableCell({
+            children: [new Paragraph({ text: String(val ?? ""), size: 20 })],
+            shading: { fill: idx % 2 === 0 ? "FFFFFF" : "FFF4E6" },
+            width: { size: colWidth, type: WidthType.PERCENTAGE },
+            margins: { top: 200, bottom: 200, left: 200, right: 200 }
+          });
+        })
+      })
+    );
 
     table = new Table({
       rows: [headerRow, ...dataRows],
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      margins: { top: 200, bottom: 200 }
+      width: { size: 100, type: WidthType.PERCENTAGE }
     });
   }
 
+  // === DOCUMENT ===
   const doc = new Document({
     sections: [{
-      children: [header1, header2, dateLine, title, ...infoParagraphs, ...(table ? [table] : [])]
+      children: [
+        header1, header2, dateLine, title,
+        ...infoParagraphs,
+        ...(table ? [table] : [])
+      ]
     }]
   });
 
   const blob = await Packer.toBlob(doc);
   const filename = `BaoCao_${(filterTenTauValue || 'Tau').replace(/\s+/g,'_')}.docx`;
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
 
 function updateServoUI() {
   if (servoState === 0) {
