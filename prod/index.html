@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="icon" type="image/png" sizes="32x32" href="./FPT_Train_logo.svg_2 (1).png">
-<title>Hệ Thống Giám Sát Đường Tàu Khu Công Nghệ Cao</title>
+<title>Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -32,6 +32,9 @@
     text-align: center;
   }
   .nav-bar {
+		position: sticky;
+    top: 0px;
+    z-index: 110;
     display: flex;
     justify-content: right;
     background-color: #cb895500;
@@ -60,7 +63,7 @@
   h1 {
     text-align: left;
     color: #ffffff;
-    background-color: #00a9ec;
+    background-color: #FF6600;
     padding: 20px 0;
     margin-top: 0;
   }
@@ -119,7 +122,7 @@
   .dashboard-controls button {
     padding: 12px 24px;
     font-size: 16px;
-    background-color: #FF6600;
+    background-color: #034ea2;
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -128,14 +131,26 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
   .dashboard-controls button:hover {
-    background-color: #e65c00;
+    background-color: #00a9ec;
     transform: translateY(-2px);
   }
   #servoStateLabel {
     display: inline-block;
     padding: 10px 16px;
-    background-color: #FFD580;
-    color: #333;
+    background-color: #034ea2;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 50px;
+    text-align: center;
+  }
+  #autoStateLabel {
+    display: inline-block;
+    padding: 10px 16px;
+    background-color: #034ea2;
+    color: #ffffff;
     font-weight: bold;
     font-size: 16px;
     border-radius: 6px;
@@ -144,24 +159,24 @@
     text-align: center;
   }
 	/* Fade-in animation keyframe */
-  @keyframes fadeIn {
+  /* @keyframes fadeIn {
   	from { opacity: 0; transform: translateY(10px); }
   	to { opacity: 1; transform: translateY(0); }
-  }
+  } */
   
   /* Apply fade-in to sections */
   #sectionHoSoTau,
   #sectionPhanTich,
-  #sectionBangDieuKhien {
+  /* #sectionBangDieuKhien {
   	animation: fadeIn 0.5s ease both;
-  }
+  } */
   
   /* Animate table rows when rendering */
-  #trainTable tbody tr {
+  /* #trainTable tbody tr {
   	opacity: 0;
   	transform: translateY(10px);
   	animation: fadeIn 0.3s ease forwards;
-  }
+  } */
   
   button, select, input[type="text"], input[type="date"], input[type="time"] {
   	transition: all 0.3s ease;
@@ -173,6 +188,83 @@
   	box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
   	border-color: #FF6600;
   }
+  #sectionHoSoTau {
+  	position: relative;
+  }
+  #sectionHoSoTau .controls {
+  	position: sticky;
+  	top: 49px; /* adjust if your h1 is taller */
+  	background: white;
+  	z-index: 90;
+  	padding: 10px 0;
+  }
+  
+  #trainTable thead {
+  	position: sticky;
+  	top: 0px; /* h1 height + controls height */
+  	background: white;
+  	z-index: 80;
+  }
+  .collapsible-container {
+    margin: 30px auto;
+    padding: 15px;
+    width: 200px;
+    background: #fff;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .toggle-form-btn {
+    width: 100%;
+    background: #034ea2;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 15px;
+  }
+  
+  .toggle-form-btn:hover {
+    background: #007fd0;
+  }
+  
+  #settingsForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+    opacity: 1;
+  }
+  
+  #settingsForm.hidden {
+    display: none;
+  }
+  
+  #settingsForm input[type="number"] {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  #settingsForm button[type="submit"] {
+    background: #FF6600;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  #settingsForm button[type="submit"]:hover {
+    background: #e65c00;
+  }
 </style>
 <!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -181,6 +273,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- docx -->
+<script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
 </head>
 <body>
 
@@ -231,6 +326,7 @@
 
     <button id="exportExcel">Xuất file Excel</button>
     <button id="exportPDF">Xuất file PDF</button>
+	<button id="exportDOCX">Xuất file Báo cáo</button>
   </div>
 
   <table id="trainTable">
@@ -278,20 +374,63 @@
     padding-top: 10px;
     padding-bottom: 10px;
 ">Bảng Điều Khiển</h1>
+<div style="display: flex;flex-direction: row;margin-right: 200px;margin-left: 200px;">
   <div class="dashboard-controls">
-    <div>
-      <span>Trạng thái barrier</span>
-	    <span id="servoStateLabel"></span>
-      <img id="servoSatateLabelImg" src="./download.png" width="100" height="100">
-	  </div>
-    <div>
-	    <span>Điều khiển barrier</span>
-	    <button id="servoToggle">Đang tải trạng thái...</button>
-	  </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px;">
+      <div style="padding-left: 20px; padding-bottom: 20px; padding-top: 20px; padding-right: 100px;">
+        <div>
+          <span>Trạng thái barrier</span>
+    	    <span id="servoStateLabel"></span>
+          <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
+    	  </div>
+        <div>
+    	    <span>Điều khiển barrier</span>
+    	    <button id="servoToggle">Đang tải trạng thái...</button>
+    	  </div>
+      </div>
+      <!-- <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;">
+        <div>
+          <span>Trạng thái hệ thống tự động</span>
+    	    <span id="autoStateLabel"></span>
+    	  </div>
+        <div>
+    	    <span>Điều khiển hệ thống tự động</span>
+    	    <button id="autoToggle">Đang tải trạng thái...</button>
+    	  </div>
+      </div> -->
+    </div>
+  </div>
+  <div class="dashboard-controls">
+    <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;" class="dashboard-controls">
+        <div>
+          <span>Trạng thái hệ thống tự động</span>
+    	  <span id="autoStateLabel"></span>
+    	</div>
+        <div>
+    	  <span>Điều khiển hệ thống tự động</span>
+    	  <button id="autoToggle">Đang tải trạng thái...</button>
+    	</div>
+    </div>
+      <div class="collapsible-container">
+        <button class="toggle-form-btn">Cài đặt</button>
+        <form id="settingsForm" class="hidden">
+          <label for="distance">Khoảng cách (m):</label>
+          <input type="number" id="distance" name="distance" placeholder="30" required>
+      
+          <label for="delay1">Thời gian cảnh báo trước (s):</label>
+          <input type="number" id="delay1" name="delay1" placeholder="20" required>
+      
+          <label for="delay2">Thời gian đóng barrier trước (s):</label>
+          <input type="number" id="delay2" name="delay2" placeholder="10" required>
+      
+          <button type="submit">Lưu</button>
+        </form>
+      </div>
   </div>
 </div>
+</div>
 
-<script>
+<script defer>
 
 const navButtons = document.querySelectorAll(".nav-bar button");
 
@@ -402,16 +541,16 @@ function renderTable(data) {
 
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
-    if (speedUnit === "kmh") {
-      speed = speed.toFixed(2) + " km/h";
+    if (speedUnit === "ms") {
+      speed = speed.toFixed(2) + " m/s";
     } else if (speedUnit === "mh") {
-      speed = (speed * 1000).toFixed(2) + " m/h";
-    } else if (speedUnit === "ms") {
-      speed = (speed * 1000 / 3600).toFixed(2) + " m/s";
+      speed = (speed * 3600).toFixed(2) + " m/h";
+    } else if (speedUnit === "kmh") {
+      speed = (speed / 1000 * 3600).toFixed(2) + " km/h";
     } else if (speedUnit === "cms") {
-      speed = (speed * 100000 / 3600).toFixed(2) + " cm/s";
+      speed = (speed * 100).toFixed(2) + " cm/s";
     }
-
+	  
     const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN");
     const gioDen = new Date(row["Giờ Đến"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
     const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN");
@@ -431,9 +570,9 @@ function renderTable(data) {
       <td>${row["Trạng Thái"]}</td>
     `;
     // Apply fade-in animation with staggered delay
-    tr.style.opacity = "0";
-    tr.style.animation = "fadeIn 0.4s ease-out forwards";
-    tr.style.animationDelay = `${row["STT"] * 0.1}s`;
+    // tr.style.opacity = "0";
+    // tr.style.animation = "fadeIn 0.4s ease-out forwards";
+    // tr.style.animationDelay = `${row["STT"] * 0.01}s`;
     tbody.appendChild(tr);
   });
 }
@@ -508,12 +647,14 @@ function sortBy(key) {
 }
   
 let servoState = null;
+let autoState = null;
 
 function setupWebSocket() {
   ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
   ws.onopen = () => {
     console.log("WebSocket connected.");
     ws.send("servo state sync");
+    ws.send("auto state sync");
   };
   ws.onmessage = (event) => {
     console.log("WebSocket message received:", event.data);
@@ -524,6 +665,11 @@ function setupWebSocket() {
       const parts = event.data.split(" ");
       servoState = parseInt(parts[2], 10);
       updateServoUI();
+    }
+    if (event.data.startsWith("auto is")) {
+      const parts = event.data.split(" ");
+      autoState = parseInt(parts[2], 10);
+      updateautoUI();
     }
   };
   ws.onclose = () => {
@@ -584,18 +730,239 @@ servoToggleButton.addEventListener("click", () => {
     }
   }
 });
-  
+
+async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
+  const {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    WidthType, AlignmentType, BorderStyle, ShadingType
+  } = docx;
+
+  // 📌 Formatters
+  const formatDate = (val) => {
+    if (!val) return "";
+    const d = new Date(val);
+    if (isNaN(d)) return "";
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  };
+
+  const formatTime = (val) => {
+    if (!val) return "";
+    const d = new Date(val);
+    if (isNaN(d)) return "";
+    return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+  };
+
+  // 📌 Current date for header
+  const now = new Date();
+  const ngay = now.getDate();
+  const thang = now.getMonth() + 1;
+  const nam = now.getFullYear();
+
+  // === HEADER ===
+  const header1 = new Paragraph({
+    children: [
+      new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true, size: 22 }),
+      new TextRun({ text: "				CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true, size: 22 })
+    ],
+    spacing: { after: 200 }
+  });
+
+  const header2 = new Paragraph({
+    children: [
+      new TextRun({ text: "KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true, size: 20 }),
+      new TextRun({ text: "							Độc lập - Tự do - Hạnh phúc", bold: true, size: 20 })
+    ],
+    spacing: { after: 200 }
+  });
+
+  const dateLine = new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    children: [
+      new TextRun({
+        text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
+        italics: true,
+        size: 20
+      })
+    ],
+    spacing: { after: 200 }
+  });
+
+  const title = new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })],
+    spacing: { after: 300 }
+  });
+
+  // === FILTER INFO ===
+  const infoFields = [
+    { label: "Tuyến", value: filterTuyenValue },
+    { label: "Tên tàu", value: filterTenTauValue },
+    { label: "Từ ngày", value: dateFromValue },
+    { label: "Đến ngày", value: dateToValue },
+    { label: "Từ giờ", value: timeFromValue },
+    { label: "Đến giờ", value: timeToValue }
+  ];
+
+  const infoParagraphs = infoFields
+    .filter(f => f.value)
+    .map(f => new Paragraph({
+      text: `${f.label}: ${f.value}`,
+      spacing: { after: 100 },
+      size: 20
+    }));
+
+  // === TABLE ===
+  let table = null;
+  if (tableData && tableData.length > 0) {
+    const keys = Object.keys(tableData[0]);
+    const colWidth = Math.floor(100 / keys.length); // spread evenly
+
+    const headerRow = new TableRow({
+      children: keys.map(k =>
+        new TableCell({
+          children: [new Paragraph({ text: k, bold: true, alignment: AlignmentType.CENTER, size: 20 })],
+          shading: { fill: "FF6600" },
+          width: { size: colWidth, type: WidthType.PERCENTAGE },
+          margins: { top: 200, bottom: 200, left: 200, right: 200 }
+        })
+      )
+    });
+
+    const dataRows = tableData.map((rowObj, idx) =>
+      new TableRow({
+        children: keys.map(k => {
+          let val = rowObj[k];
+
+          // ---- AUTO FORMAT DATE/TIME ----
+          if (k.includes("Giờ")) val = formatTime(val);
+          if (k.includes("Ngày")) val = formatDate(val);
+
+          return new TableCell({
+            children: [new Paragraph({ text: String(val ?? ""), size: 20 })],
+            shading: { fill: idx % 2 === 0 ? "FFFFFF" : "FFF4E6" },
+            width: { size: colWidth, type: WidthType.PERCENTAGE },
+            margins: { top: 200, bottom: 200, left: 200, right: 200 }
+          });
+        })
+      })
+    );
+
+    table = new Table({
+      rows: [headerRow, ...dataRows],
+      width: { size: 100, type: WidthType.PERCENTAGE },
+	  alignment: AlignmentType.CENTER
+    });
+  }
+
+  // === DOCUMENT ===
+  const doc = new Document({
+	  styles: {
+	    default: {
+	      document: {
+	        run: {
+	          font: "Times New Roman",
+	        },
+	        paragraph: {
+	          spacing: { line: 276 }   // optional: 1.15 line height
+	        }
+	      }
+	    }
+	  },
+    sections: [{
+		  properties: {
+	      page: {
+	        margin: {
+	          top: 720,     // 0.5 inch
+	          bottom: 720,  // 0.5 inch
+	          left: 720,    // 0.5 inch
+	          right: 720    // 0.5 inch
+	        }
+	      }
+	    },
+      children: [
+        header1, header2, dateLine, title,
+        ...infoParagraphs,
+        ...(table ? [table] : [])
+      ]
+    }]
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const filename = `BaoCao_${(filterTenTauValue || 'Tau').replace(/\s+/g,'_')}.docx`;
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
 function updateServoUI() {
   if (servoState === 0) {
     servoToggleButton.textContent = "Hạ barrier";
+    servoToggleButton.style.backgroundColor = "#f37021";
     servoStateLabel.textContent = "Mở";
-    document.getElementById("servoSatateLabelImg").src = "./download (1).png"
+    servoStateLabel.style.backgroundColor = "#51b848";
+    document.getElementById("servoSatateLabelImg").src = "./Barrier Open.png"
   } else if (servoState === 1) {
     servoToggleButton.textContent = "Nâng barrier";
+    servoToggleButton.style.backgroundColor = "#51b848";
     servoStateLabel.textContent = "Đóng";
-    document.getElementById("servoSatateLabelImg").src = "./download.png"
+    servoStateLabel.style.backgroundColor = "#f37021";
+    document.getElementById("servoSatateLabelImg").src = "./Barrier Close.png"
   }
 }
+
+const autoToggleButton = document.getElementById("autoToggle");
+const autoStateLabel = document.getElementById("autoStateLabel");
+
+autoToggleButton.addEventListener("click", () => {
+  if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
+    if (autoState === 0) {
+      ws.send("auto off");
+    } 
+    if (autoState === 1) {
+      ws.send("auto on");
+    }
+  }
+});
+  
+function updateautoUI() {
+  if (autoState === 0) {
+    autoToggleButton.textContent = "MANUAL";
+    autoToggleButton.style.backgroundColor = "#f37021";
+    autoStateLabel.textContent = "AUTO";
+    autoStateLabel.style.backgroundColor = "#51b848";
+  } else if (autoState === 1) {
+    autoToggleButton.textContent = "AUTO";
+    autoToggleButton.style.backgroundColor = "#51b848";
+    autoStateLabel.textContent = "MANUAL";
+    autoStateLabel.style.backgroundColor = "#f37021";
+  }
+}
+
+const toggleBtn = document.querySelector('.toggle-form-btn');
+const form = document.getElementById('settingsForm');
+
+toggleBtn.addEventListener('click', () => {
+  form.classList.toggle('hidden');
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const distance = document.getElementById('distance').value;
+  const delay1 = document.getElementById('delay1').value;
+  const delay2 = document.getElementById('delay2').value;
+  
+  console.log("Submitted values:", { distance, delay1, delay2 });
+  
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		ws.send("distance " + distance);
+		ws.send("delay1 " + delay1);
+		ws.send("delay2 " + delay2);
+	} else {
+		console.warn("WebSocket is not open.");
+	}
+});
 
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
 document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
@@ -613,7 +980,26 @@ document.querySelectorAll("#trainTable th").forEach(th => {
 });
 document.getElementById("exportExcel").addEventListener("click", exportExcel);
 document.getElementById("exportPDF").addEventListener("click", exportPDF);
+document.getElementById("exportDOCX").addEventListener("click", () => {
+  // read real values from DOM at click-time
+  const filterTuyenValue = document.getElementById("filterTuyen").value;
+  const filterTenTauValue = document.getElementById("filterTenTau").value;
+  const dateFromValue = document.getElementById("dateFrom").value;
+  const dateToValue = document.getElementById("dateTo").value;
+  const timeFromValue = document.getElementById("timeFrom").value;
+  const timeToValue = document.getElementById("timeTo").value;
 
+  exportReportDOCX(
+    currentFilteredData,
+    filterTuyenValue,
+    filterTenTauValue,
+    dateFromValue,
+    dateToValue,
+    timeFromValue,
+    timeToValue
+  );
+});
+	
 let avgSpeedChartInstance = null;
 let tripCountChartInstance = null;
 let speedPerDayChartInstance = null;
@@ -649,7 +1035,9 @@ function renderCharts() {
       datasets: [{
         label: 'Tốc Độ Trung Bình (km/h)',
         data: avgSpeeds,
-        backgroundColor: trainNames.map(name => hashColor(name))
+        backgroundColor: trainNames.map(name => hashColor(name)),
+        barThickness: 20,
+        maxBarThickness: 20
       },
                  {
         label: 'Tốc độ TB tất cả tàu',
@@ -681,7 +1069,9 @@ function renderCharts() {
       datasets: [{
         label: 'Số Chuyến',
         data: Object.values(tripCounts),
-        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name))
+        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name)),
+        barThickness: 20,
+        maxBarThickness: 20
       },
                  {
         label: 'Số chuyến TB tất cả tàu',
@@ -787,6 +1177,7 @@ applySavedUnits();
 fetchDataAndRender();
 setupWebSocket();
 //setInterval(fetchDataAndRender, 60000);
+console.log("docx loaded?", window.docx);
 </script>
 
 </body>
