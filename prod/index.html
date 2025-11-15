@@ -859,6 +859,18 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
   // === DOCUMENT ===
   const doc = new Document({
+	  styles: {
+	    default: {
+	      document: {
+	        run: {
+	          font: "Times New Roman",
+	        },
+	        paragraph: {
+	          spacing: { line: 276 }   // optional: 1.15 line height
+	        }
+	      }
+	    }
+	  },
     sections: [{
 		  properties: {
 	      page: {
