@@ -734,104 +734,110 @@ servoToggleButton.addEventListener("click", () => {
   }
 });
 
-async function exportReportDOCX(tableData, filterTuyen, filterTenTau, dateFrom, dateTo, timeFrom, timeTo) {
+async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
+  // ensure docx exists
+  if (typeof docx === "undefined") {
+    alert("docx library not loaded");
+    return;
+  }
 
-    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } = docx;
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } = docx;
 
-    // Quốc hiệu & hành chính
-    const header1 = new Paragraph({
-        children: [
-            new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true }),
-            new TextRun({ text: "             CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true })
-        ]
+  // Quốc hiệu & hành chính
+  const header1 = new Paragraph({
+    children: [
+      new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true }),
+      new TextRun({ text: "             CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true })
+    ]
+  });
+
+  const header2 = new Paragraph({
+    children: [
+      new TextRun({ text: "KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true }),
+      new TextRun({ text: "                                      Độc lập - Tự do - Hạnh phúc", bold: true })
+    ]
+  });
+
+  const dateLine = new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    children: [
+      new TextRun({ text: `TP.HCM, ngày …. tháng …. năm ….`, italics: true })
+    ]
+  });
+
+  const title = new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [
+      new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })
+    ]
+  });
+
+  // Build train info based on filter values (skip empties)
+  const infoFields = [
+    { label: "Tuyến", value: filterTuyenValue },
+    { label: "Tên tàu", value: filterTenTauValue },
+    { label: "Từ ngày", value: dateFromValue },
+    { label: "Đến ngày", value: dateToValue },
+    { label: "Từ giờ", value: timeFromValue },
+    { label: "Đến giờ", value: timeToValue }
+  ];
+
+  const infoParagraphs = infoFields
+    .filter(f => f.value !== undefined && f.value !== null && String(f.value).trim() !== "")
+    .map(f => new Paragraph({ text: `${f.label}: ${f.value}`, spacing: { after: 100 } }));
+
+  // Build table only if data exists
+  let table = null;
+  if (Array.isArray(tableData) && tableData.length > 0) {
+    // ensure consistent order of columns: use keys of first object
+    const keys = Object.keys(tableData[0]);
+
+    const headerRow = new TableRow({
+      children: keys.map(k => new TableCell({ children: [new Paragraph({ text: k, bold: true })] }))
     });
 
-    const header2 = new Paragraph({
-        children: [
-            new TextRun({ text: "KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true }),
-            new TextRun({ text: "                                      Độc lập - Tự do - Hạnh phúc", bold: true })
-        ]
+    const dataRows = tableData.map(rowObj => new TableRow({
+      children: keys.map(k => new TableCell({ children: [new Paragraph(String(rowObj[k] ?? ""))] }))
+    }));
+
+    table = new Table({
+      rows: [headerRow, ...dataRows],
+      width: { size: 100, type: WidthType.PERCENTAGE }
     });
+  }
 
-    const dateLine = new Paragraph({
-        alignment: AlignmentType.RIGHT,
-        children: [
-            new TextRun({ text: `TP.HCM, ngày …. tháng …. năm ….`, italics: true })
-        ]
-    });
+  const doc = new Document({
+    sections: [{
+      children: [
+        header1,
+        header2,
+        dateLine,
+        new Paragraph(""),
+        title,
+        ...infoParagraphs,
+        new Paragraph(""),
+        ...(table ? [table] : [])
+      ]
+    }]
+  });
 
-    const title = new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [
-            new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })
-        ]
-    });
-
-    // Build train info based on your filter variables
-    const infoFields = [
-        { label: "Tuyến", value: filterTuyen },
-        { label: "Tên tàu", value: filterTenTau },
-        { label: "Từ ngày", value: dateFrom },
-        { label: "Đến ngày", value: dateTo },
-        { label: "Từ giờ", value: timeFrom },
-        { label: "Đến giờ", value: timeTo }
-    ];
-
-    // Keep only non-empty values
-    const info = infoFields
-        .filter(f => f.value && f.value.trim() !== "")
-        .map(f =>
-            new Paragraph({
-                text: `${f.label}: ${f.value}`,
-                spacing: { after: 100 }
-            })
-        );
-
-    // Build table
-    let table = null;
-
-    if (tableData && tableData.length > 0) {
-        const tableHeader = new TableRow({
-            children: Object.keys(tableData[0]).map(key =>
-                new TableCell({
-                    children: [ new Paragraph({ text: key, bold: true }) ]
-                })
-            )
-        });
-
-        const tableRows = tableData.map(row =>
-            new TableRow({
-                children: Object.values(row).map(val =>
-                    new TableCell({
-                        children: [ new Paragraph(String(val)) ]
-                    })
-                )
-            })
-        );
-
-        table = new Table({
-            rows: [tableHeader, ...tableRows],
-            width: { size: 100, type: WidthType.PERCENTAGE }
-        });
-    }
-
-    const doc = new Document({
-        sections: [{
-            children: [
-                header1,
-                header2,
-                dateLine,
-                new Paragraph(""),
-                title,
-                ...info,
-                new Paragraph(""),
-                ...(table ? [table] : [])
-            ]
-        }]
-    });
-
+  // Create blob and download without FileSaver
+  try {
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `BaoCao_${filterTenTau || "Tau"}.docx`);
+    const filename = `BaoCao_${(filterTenTauValue && filterTenTauValue.trim()) ? filterTenTauValue.replace(/\s+/g,'_') : 'Tau'}.docx`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // revoke after a short delay to be safe
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.error("Failed to generate DOCX:", err);
+    alert("Lỗi khi tạo file DOCX. Kiểm tra console để biết thêm chi tiết.");
+  }
 }
 
 function updateServoUI() {
@@ -919,15 +925,23 @@ document.querySelectorAll("#trainTable th").forEach(th => {
 document.getElementById("exportExcel").addEventListener("click", exportExcel);
 document.getElementById("exportPDF").addEventListener("click", exportPDF);
 document.getElementById("exportDOCX").addEventListener("click", () => {
-    exportReportDOCX(
-        currentFilteredData,
-        filterTuyen,
-        filterTenTau,
-        dateFrom,
-        dateTo,
-        timeFrom,
-        timeTo
-    );
+  // read real values from DOM at click-time
+  const filterTuyenValue = document.getElementById("filterTuyen").value;
+  const filterTenTauValue = document.getElementById("filterTenTau").value;
+  const dateFromValue = document.getElementById("dateFrom").value;
+  const dateToValue = document.getElementById("dateTo").value;
+  const timeFromValue = document.getElementById("timeFrom").value;
+  const timeToValue = document.getElementById("timeTo").value;
+
+  exportReportDOCX(
+    currentFilteredData,
+    filterTuyenValue,
+    filterTenTauValue,
+    dateFromValue,
+    dateToValue,
+    timeFromValue,
+    timeToValue
+  );
 });
 	
 let avgSpeedChartInstance = null;
