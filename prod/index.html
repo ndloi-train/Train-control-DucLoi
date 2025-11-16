@@ -866,14 +866,13 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   const subDateLine = new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [
-	  new TextRun({ text: ` ` }),
       new TextRun({
         text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
         italics: true,
         size: 20
       })
     ],
-    spacing: { after: 200 }
+    spacing: { after: 200, before: 200 }
   });
 
   const signLine = new Paragraph({
