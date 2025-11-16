@@ -792,14 +792,14 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
   const title = new Paragraph({
     alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 16 })],
+    children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })],
 	style: { textColor: "0000FF" },
     spacing: { after: 300 }
   });
 
   const subTitle = new Paragraph({
     alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "Trạm Lý Chính Thắng", bold: true, size: 13 })],
+    children: [new TextRun({ text: "Trạm Lý Chính Thắng", bold: true, size: 23 })],
     spacing: { after: 300 }
   });
 
@@ -926,9 +926,10 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 	      }
 	    },
       children: [
-        header1, header2, dateLine, title,
+        header1, header2, dateLine, title, subTitle,
         ...infoParagraphs,
-        ...(table ? [table] : [])
+        ...(table ? [table] : []),
+		subDateLine, signLine, subSignLine
       ]
     }]
   });
