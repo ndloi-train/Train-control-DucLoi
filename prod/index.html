@@ -793,7 +793,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   const title = new Paragraph({
     alignment: AlignmentType.CENTER,
     children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })],
-	style: { textColor: "0000FF" },
+	color: 0000FF,
     spacing: { after: 300 }
   });
 
@@ -882,7 +882,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
       new TextRun({
         text: `Trưởng Trạm		`,
         bold: true,
-        size: 14
+        size: 28
       })
     ],
     spacing: { after: 200 }
@@ -894,7 +894,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
       new TextRun({
         text: `(Ký và ghi rõ họ tên)		`,
         italics: true,
-        size: 14
+        size: 28
       })
     ],
     spacing: { after: 200 }
