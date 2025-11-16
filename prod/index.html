@@ -765,15 +765,15 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   const header1 = new Paragraph({
     children: [
       new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true, size: 22 }),
-      new TextRun({ text: "				CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true, size: 22 })
+      new TextRun({ text: "		CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true, size: 22 })
     ],
     spacing: { after: 200 }
   });
 
   const header2 = new Paragraph({
     children: [
-      new TextRun({ text: "KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true, size: 20 }),
-      new TextRun({ text: "							Độc lập - Tự do - Hạnh phúc", bold: true, size: 20 })
+      new TextRun({ text: "	KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true, size: 20 }),
+      new TextRun({ text: "						Độc lập - Tự do - Hạnh phúc", bold: true, size: 20 })
     ],
     spacing: { after: 200 }
   });
@@ -792,7 +792,14 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
   const title = new Paragraph({
     alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })],
+    children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 16 })],
+	color: { "0000FF" },
+    spacing: { after: 300 }
+  });
+
+  const subTitle = new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: "Trạm Lý Chính Thắng", bold: true, size: 13 })],
     spacing: { after: 300 }
   });
 
@@ -824,7 +831,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
       children: keys.map(k =>
         new TableCell({
           children: [new Paragraph({ text: k, bold: true, alignment: AlignmentType.CENTER, size: 20 })],
-          shading: { fill: "FF6600" },
+          shading: { fill: "BDB76B" },
           width: { size: colWidth, type: WidthType.PERCENTAGE },
           margins: { top: 200, bottom: 200, left: 200, right: 200 }
         })
@@ -857,6 +864,42 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
     });
   }
 
+  const subDateLine = new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    children: [
+      new TextRun({
+        text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
+        italics: true,
+        size: 20
+      })
+    ],
+    spacing: { after: 200 }
+  });
+
+  const signLine = new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    children: [
+      new TextRun({
+        text: `Trưởng Trạm		`,
+        bold: true,
+        size: 14
+      })
+    ],
+    spacing: { after: 200 }
+  });
+
+  const subSignLine = new Paragraph({
+    alignment: AlignmentType.RIGHT,
+    children: [
+      new TextRun({
+        text: `(Ký và ghi rõ họ tên)		`,
+        italics: true,
+        size: 14
+      })
+    ],
+    spacing: { after: 200 }
+  });
+	
   // === DOCUMENT ===
   const doc = new Document({
 	  styles: {
