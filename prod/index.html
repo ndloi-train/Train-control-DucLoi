@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="icon" type="image/png" sizes="32x32" href="./FPT_Train_logo.svg_2 (1).png">
+<link rel="icon" type="image/png" sizes="32x32" href="./a (1).png">
 <title>Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</title>
 <style>
   body {
@@ -867,7 +867,8 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
     alignment: AlignmentType.RIGHT,
     children: [
       new TextRun({
-        text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
+        text: `
+		TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
         italics: true,
         size: 20
       })
@@ -893,7 +894,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
       new TextRun({
         text: `(Ký và ghi rõ họ tên)		`,
         italics: true,
-        size: 28
+        size: 5
       })
     ],
     spacing: { after: 200 }
