@@ -793,7 +793,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
   const title = new Paragraph({
     alignment: AlignmentType.CENTER,
     children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 16 })],
-	color: { "0000FF" },
+	style: { textColor: "0000FF" },
     spacing: { after: 300 }
   });
 
