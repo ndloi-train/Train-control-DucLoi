@@ -796,11 +796,11 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
     spacing: { after: 300 }
   });
 
-  const subTitle = new Paragraph({
-    alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "Trạm Lý Chính Thắng", bold: true, size: 23 })],
-    spacing: { after: 300 }
-  });
+  // const subTitle = new Paragraph({
+  //   alignment: AlignmentType.CENTER,
+  //   children: [new TextRun({ text: "Trạm Lý Chính Thắng", bold: true, size: 23 })],
+  //   spacing: { after: 300 }
+  // });
 
   // === FILTER INFO ===
   const infoFields = [
@@ -925,7 +925,7 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 	      }
 	    },
       children: [
-        header1, header2, dateLine, title, subTitle,
+        header1, header2, dateLine, title, //subTitle,
         ...infoParagraphs,
         ...(table ? [table] : []),
 		subDateLine, signLine, subSignLine
