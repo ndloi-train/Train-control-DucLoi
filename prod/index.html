@@ -655,36 +655,59 @@ let autoState = null;
 
 function setupWebSocket() {
   ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
+
   ws.onopen = () => {
     console.log("WebSocket connected.");
-    ws.send("servo state sync");
-    ws.send("auto state sync");
+
+    // Ask K2 for initial sync in JSON instead of plain text
+    ws.send(JSON.stringify({ type: "sync", target: "servo" }));
+    ws.send(JSON.stringify({ type: "sync", target: "auto" }));
   };
+
   ws.onmessage = (event) => {
-    console.log("WebSocket message received:", event.data);
-    if (event.data === "front-end update") {
+    console.log("WS received raw:", event.data);
+
+    let msg = null;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (err) {
+      console.warn("Received non-JSON message (ignored):", event.data);
+      return;
+    }
+
+    // ─────────────────────────────
+    //     PROCESS JSON MESSAGES
+    // ─────────────────────────────
+
+    // Example: { "type": "update", "target": "frontend" }
+    if (msg.type === "update" && msg.target === "frontend") {
       fetchDataAndRender();
     }
-    if (event.data.startsWith("servo is")) {
-      const parts = event.data.split(" ");
-      servoState = parseInt(parts[2], 10);
+
+    // Example: { "type": "state", "device": "servo", "value": 0 }
+    if (msg.type === "state" && msg.device === "servo") {
+      servoState = Number(msg.value);
       updateServoUI();
     }
-    if (event.data.startsWith("auto is")) {
-      const parts = event.data.split(" ");
-      autoState = parseInt(parts[2], 10);
+
+    // Example: { "type": "state", "device": "auto", "value": 1 }
+    if (msg.type === "state" && msg.device === "auto") {
+      autoState = Number(msg.value);
       updateautoUI();
     }
   };
+
   ws.onclose = () => {
     console.warn("WebSocket disconnected. Reconnecting in 5s...");
     setTimeout(setupWebSocket, 5000);
   };
+
   ws.onerror = (err) => {
     console.error("WebSocket error:", err);
     ws.close();
   };
 }
+
 
 function exportExcel() {
   const ws_data = [
@@ -726,13 +749,15 @@ const servoToggleButton = document.getElementById("servoToggle");
 const servoStateLabel = document.getElementById("servoStateLabel");
 
 servoToggleButton.addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN && servoState !== null) {
-    if (servoState === 0) {
-      ws.send("servo close");
-    } else {
-      ws.send("servo open");
-    }
-  }
+  if (!ws || ws.readyState !== WebSocket.OPEN || servoState === null) return;
+
+  const command = servoState === 0 ? "close" : "open";
+
+  ws.send(JSON.stringify({
+    type: "command",
+    device: "servo",
+    action: command
+  }));
 });
 
 async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
@@ -963,15 +988,17 @@ const autoToggleButton = document.getElementById("autoToggle");
 const autoStateLabel = document.getElementById("autoStateLabel");
 
 autoToggleButton.addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
-    if (autoState === 0) {
-      ws.send("auto off");
-    } 
-    if (autoState === 1) {
-      ws.send("auto on");
-    }
-  }
+  if (!ws || ws.readyState !== WebSocket.OPEN || autoState === null) return;
+
+  const action = autoState === 0 ? "off" : "on";
+
+  ws.send(JSON.stringify({
+    type: "command",
+    device: "auto",
+    action: action
+  }));
 });
+
   
 function updateautoUI() {
   if (autoState === 0) {
@@ -996,19 +1023,18 @@ toggleBtn.addEventListener('click', () => {
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
+
   const distance = document.getElementById('distance').value;
-  const delay1 = document.getElementById('delay1').value;
-  const delay2 = document.getElementById('delay2').value;
-  
-  console.log("Submitted values:", { distance, delay1, delay2 });
-  
-	if (ws && ws.readyState === WebSocket.OPEN) {
-		ws.send("distance " + distance);
-		ws.send("delay1 " + delay1);
-		ws.send("delay2 " + delay2);
-	} else {
-		console.warn("WebSocket is not open.");
-	}
+  const delay1   = document.getElementById('delay1').value;
+  const delay2   = document.getElementById('delay2').value;
+
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    return console.warn("WebSocket is not open.");
+  }
+
+  ws.send(JSON.stringify({ type: "config", key: "distance", value: distance }));
+  ws.send(JSON.stringify({ type: "config", key: "delay1", value: delay1 }));
+  ws.send(JSON.stringify({ type: "config", key: "delay2", value: delay2 }));
 });
 
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
