@@ -725,7 +725,7 @@ function setupWebSocket() {
         case "auto_state_response": {
           // Expect parsed.state = true/false
           const st = !!parsed.state;
-          autoState = st ? 1 : 0; // keep old UI numeric convention
+          autoState = st ? true : false; // keep old UI numeric convention
           updateautoUI();
           break;
         }
@@ -758,8 +758,9 @@ function setupWebSocket() {
     // --- Fallback: legacy plain-text handlers (backwards compatibility) ---
     console.log("WebSocket message received (text):", text);
 
-    if (text === "front-end update") {
-      if (typeof fetchDataAndRender === "function") fetchDataAndRender();
+    if (text === "update_data") {
+    if (typeof fetchDataAndRender === "function") fetchDataAndRender();
+
     } else if (text.startsWith("servo is")) {
       const parts = text.split(" ");
       const val = parseInt(parts[2], 10);
