@@ -653,47 +653,130 @@ function sortBy(key) {
 let servoState = null;
 let autoState = null;
 
+function sendJSON(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    try {
+      ws.send(JSON.stringify(obj));
+    } catch (e) {
+      console.error("Failed to send JSON over WS:", e, obj);
+    }
+  } else {
+    console.warn("WebSocket not open - cannot send:", obj);
+  }
+}
+
 function setupWebSocket() {
   ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
 
   ws.onopen = () => {
     console.log("WebSocket connected.");
 
-    // Ask K2 for initial sync in JSON instead of plain text
-    ws.send(JSON.stringify({ type: "sync", target: "servo" }));
-    ws.send(JSON.stringify({ type: "sync", target: "auto" }));
+    // Ask K2 for current barrier & auto state
+    sendJSON({ command: "barrier_state_request" });
+    sendJSON({ command: "auto_state_request" });
+
+    // If you want to request a dashboard refresh immediately:
+    // sendJSON({ command: "request_update_data" }); // optional, only if server understands it
   };
 
-  ws.onmessage = (event) => {
-    console.log("WS received raw:", event.data);
-
-    let msg = null;
+  ws.onmessage = async (event) => {
+    // Handle Blob payloads as text
+    let text;
     try {
-      msg = JSON.parse(event.data);
-    } catch (err) {
-      console.warn("Received non-JSON message (ignored):", event.data);
+      if (typeof event.data === "string") {
+        text = event.data;
+      } else if (event.data instanceof Blob && event.data.text) {
+        text = await event.data.text();
+      } else {
+        // Fallback: try toString
+        text = String(event.data);
+      }
+    } catch (e) {
+      console.error("Error reading WS message:", e);
       return;
     }
 
-    // ─────────────────────────────
-    //     PROCESS JSON MESSAGES
-    // ─────────────────────────────
-
-    // Example: { "type": "update", "target": "frontend" }
-    if (msg.type === "update" && msg.target === "frontend") {
-      fetchDataAndRender();
+    // Try JSON parse first (new protocol)
+    let parsed = null;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      parsed = null;
     }
 
-    // Example: { "type": "state", "device": "servo", "value": 0 }
-    if (msg.type === "state" && msg.device === "servo") {
-      servoState = Number(msg.value);
-      updateServoUI();
+    if (parsed && parsed.command) {
+      const cmd = parsed.command;
+      console.log("WS JSON command:", cmd, parsed);
+
+      switch (cmd) {
+        case "barrier_state_response":
+        case "barrier_state_update": {
+          // Expect parsed.state === "OPEN" | "CLOSED"
+          const state = (parsed.state || "").toUpperCase();
+          if (state === "OPEN") servoState = 0;
+          else if (state === "CLOSED") servoState = 1;
+          else {
+            console.warn("Unknown barrier state from WS:", parsed.state);
+          }
+          updateServoUI();
+          break;
+        }
+
+        case "auto_state_response": {
+          // Expect parsed.state = true/false
+          const st = !!parsed.state;
+          autoState = st ? 1 : 0; // keep old UI numeric convention
+          updateautoUI();
+          break;
+        }
+
+        case "update_data": {
+          // Server telling front-end to refresh
+          console.log("WS -> update_data: refreshing data");
+          if (typeof fetchDataAndRender === "function") fetchDataAndRender();
+          break;
+        }
+
+        case "update_warning": {
+          // Optional: server sent new warning config; we can log or update UI if you have inputs bound.
+          console.log("WS -> update_warning:", parsed);
+          // If you want to reflect these values in inputs:
+          if (parsed.distance !== undefined) document.getElementById('distance').value = parsed.distance;
+          if (parsed.warning1 !== undefined) document.getElementById('delay1').value = parsed.warning1;
+          if (parsed.warning2 !== undefined) document.getElementById('delay2').value = parsed.warning2;
+          break;
+        }
+
+        // add other JSON commands from K2 as needed...
+        default:
+          console.log("Unhandled WS JSON command:", parsed);
+      }
+
+      return; // stop, since we handled JSON
     }
 
-    // Example: { "type": "state", "device": "auto", "value": 1 }
-    if (msg.type === "state" && msg.device === "auto") {
-      autoState = Number(msg.value);
-      updateautoUI();
+    // --- Fallback: legacy plain-text handlers (backwards compatibility) ---
+    console.log("WebSocket message received (text):", text);
+
+    if (text === "front-end update") {
+      if (typeof fetchDataAndRender === "function") fetchDataAndRender();
+    } else if (text.startsWith("servo is")) {
+      const parts = text.split(" ");
+      const val = parseInt(parts[2], 10);
+      if (!isNaN(val)) {
+        servoState = val;
+        updateServoUI();
+      }
+    } else if (text.startsWith("auto is")) {
+      const parts = text.split(" ");
+      const val = parseInt(parts[2], 10);
+      if (!isNaN(val)) {
+        autoState = val;
+        updateautoUI();
+      }
+    } else {
+      // unknown legacy text - just log
+      console.log("Unhandled legacy message:", text);
     }
   };
 
@@ -704,10 +787,9 @@ function setupWebSocket() {
 
   ws.onerror = (err) => {
     console.error("WebSocket error:", err);
-    ws.close();
+    try { ws.close(); } catch (e) {}
   };
 }
-
 
 function exportExcel() {
   const ws_data = [
@@ -749,15 +831,15 @@ const servoToggleButton = document.getElementById("servoToggle");
 const servoStateLabel = document.getElementById("servoStateLabel");
 
 servoToggleButton.addEventListener("click", () => {
-  if (!ws || ws.readyState !== WebSocket.OPEN || servoState === null) return;
-
-  const command = servoState === 0 ? "close" : "open";
-
-  ws.send(JSON.stringify({
-    type: "command",
-    device: "servo",
-    action: command
-  }));
+  if (ws && ws.readyState === WebSocket.OPEN && servoState !== null) {
+    if (servoState === 0) {
+      // currently OPEN -> request CLOSE
+      sendJSON({ command: "close_barrier" });
+    } else {
+      // currently CLOSED -> request OPEN
+      sendJSON({ command: "open_barrier" });
+    }
+  }
 });
 
 async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
@@ -988,17 +1070,12 @@ const autoToggleButton = document.getElementById("autoToggle");
 const autoStateLabel = document.getElementById("autoStateLabel");
 
 autoToggleButton.addEventListener("click", () => {
-  if (!ws || ws.readyState !== WebSocket.OPEN || autoState === null) return;
-
-  const action = autoState === 0 ? "off" : "on";
-
-  ws.send(JSON.stringify({
-    type: "command",
-    device: "auto",
-    action: action
-  }));
+  if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
+    const nextStateBool = !(autoState === 1); // invert current
+    sendJSON({ command: "set_auto_state", state: nextStateBool });
+    // optimistic UI update will happen when auto_state_response arrives
+  }
 });
-
   
 function updateautoUI() {
   if (autoState === 0) {
@@ -1025,18 +1102,22 @@ toggleBtn.addEventListener('click', () => {
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
+  const distanceRaw = document.getElementById('distance').value;
+  const delay1Raw = document.getElementById('delay1').value;
+  const delay2Raw = document.getElementById('delay2').value;
 
-  const distance = document.getElementById('distance').value;
-  const delay1   = document.getElementById('delay1').value;
-  const delay2   = document.getElementById('delay2').value;
+  const distance = distanceRaw === "" ? undefined : Number(distanceRaw);
+  const warning1 = delay1Raw === "" ? undefined : Number(delay1Raw);
+  const warning2 = delay2Raw === "" ? undefined : Number(delay2Raw);
 
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
-    return console.warn("WebSocket is not open.");
-  }
+  console.log("Submitted values:", { distance, warning1, warning2 });
 
-  ws.send(JSON.stringify({ type: "config", key: "distance", value: distance }));
-  ws.send(JSON.stringify({ type: "config", key: "delay1", value: delay1 }));
-  ws.send(JSON.stringify({ type: "config", key: "delay2", value: delay2 }));
+  const payload = { command: "update_warning" };
+  if (!isNaN(distance) && distance !== undefined) payload.distance = distance;
+  if (!isNaN(warning1) && warning1 !== undefined) payload.warning1 = warning1;
+  if (!isNaN(warning2) && warning2 !== undefined) payload.warning2 = warning2;
+
+  sendJSON(payload);
 });
 
 document.getElementById("searchInput").addEventListener("input", filterAndSearch);
