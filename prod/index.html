@@ -759,7 +759,7 @@ function setupWebSocket() {
         case "auto_state_response": {
           // Expect parsed.state = true/false
           const st = !!parsed.state;
-          autoState = st ? true : false; // keep old UI numeric convention
+          autoState = st ? True : False; // keep old UI numeric convention
           updateautoUI();
           break;
         }
