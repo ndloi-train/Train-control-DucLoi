@@ -537,6 +537,43 @@ function populateFilters() {
   tuyenSelect.value = savedTuyen;
 }
 
+function isValidDate(d) {
+  return d instanceof Date && !isNaN(d);
+}
+
+function parseDateString(str) {
+  // Try direct parse first
+  let d = new Date(str);
+  if (isValidDate(d)) return d;
+
+  // Try DD/MM/YYYY format manually
+  const parts = str.split("/");
+  if (parts.length === 3) {
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1; // JS months 0–11
+    const year = parseInt(parts[2]);
+    d = new Date(year, month, day);
+    if (isValidDate(d)) return d;
+  }
+
+  return null; // invalid
+}
+
+function parseTimeString(str) {
+  const parts = str.split(":");
+  if (parts.length < 2) return null;
+
+  const hour = parseInt(parts[0]);
+  const min = parseInt(parts[1]);
+  const sec = parseInt(parts[2] || 0);
+
+  if (hour > 23 || min > 59 || sec > 59) return null;
+
+  const now = new Date();
+  now.setHours(hour, min, sec, 0);
+  return now;
+}
+
 function renderTable(data) {
   currentFilteredData = data;
   const tbody = document.querySelector("#trainTable tbody");
@@ -545,20 +582,26 @@ function renderTable(data) {
 
   data.forEach(row => {
     let speed = Number(row["Vận Tốc"]);
-    if (speedUnit === "ms") {
-      speed = speed.toFixed(2) + " m/s";
-    } else if (speedUnit === "mh") {
-      speed = (speed * 3600).toFixed(2) + " m/h";
-    } else if (speedUnit === "kmh") {
-      speed = (speed / 1000 * 3600).toFixed(2) + " km/h";
-    } else if (speedUnit === "cms") {
-      speed = (speed * 100).toFixed(2) + " cm/s";
+    if (speedUnit === "ms") speed = speed.toFixed(2) + " m/s";
+    else if (speedUnit === "mh") speed = (speed * 3600).toFixed(2) + " m/h";
+    else if (speedUnit === "kmh") speed = (speed / 1000 * 3600).toFixed(2) + " km/h";
+    else if (speedUnit === "cms") speed = (speed * 100).toFixed(2) + " cm/s";
+
+    // --- DATE + TIME VALIDATION ----
+    const ngayDenDate = parseDateString(row["Ngày Đến"]);
+    const gioDenDate = parseTimeString(row["Giờ Đến"]);
+    const ngayRoiDate = parseDateString(row["Ngày Rời"]);
+    const gioRoiDate = parseTimeString(row["Giờ Rời"]);
+
+    // Format OR fallback
+    const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
+    const gioDen = gioDenDate ? gioDenDate.toLocaleTimeString("vi-VN") : "⚠ Invalid";
+    const ngayRoi = ngayRoiDate ? ngayRoiDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
+    const gioRoi = gioRoiDate ? gioRoiDate.toLocaleTimeString("vi-VN") : "⚠ Invalid";
+
+    if (!ngayDenDate || !gioDenDate || !ngayRoiDate || !gioRoiDate) {
+      console.warn("Invalid date or time format in row:", row);
     }
-	  
-    const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN");
-    const gioDen = new Date(row["Giờ Đến"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-    const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN");
-    const gioRoi = new Date(row["Giờ Rời"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -573,10 +616,7 @@ function renderTable(data) {
       <td>${gioRoi}</td>
       <td>${row["Trạng Thái"]}</td>
     `;
-    // Apply fade-in animation with staggered delay
-    // tr.style.opacity = "0";
-    // tr.style.animation = "fadeIn 0.4s ease-out forwards";
-    // tr.style.animationDelay = `${row["STT"] * 0.01}s`;
+
     tbody.appendChild(tr);
   });
 }
