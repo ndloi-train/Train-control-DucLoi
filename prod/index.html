@@ -559,19 +559,13 @@ function parseDateString(str) {
   return null; // invalid
 }
 
-function parseTimeString(str) {
-  const parts = str.split(":");
-  if (parts.length < 2) return null;
-
-  const hour = parseInt(parts[0]);
-  const min = parseInt(parts[1]);
-  const sec = parseInt(parts[2] || 0);
-
-  if (hour > 23 || min > 59 || sec > 59) return null;
-
-  const now = new Date();
-  now.setHours(hour, min, sec, 0);
-  return now;
+function parseTimeString(excelTimeStr) {
+    const date = new Date(excelTimeStr);
+    if (isNaN(date)) return null;
+    
+    const now = new Date();
+    now.setHours(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), 0);
+    return now;
 }
 
 function renderTable(data) {
