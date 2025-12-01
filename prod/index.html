@@ -1106,20 +1106,20 @@ const autoStateLabel = document.getElementById("autoStateLabel");
 
 autoToggleButton.addEventListener("click", () => {
   if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
-    const nextStateBool = !(autoState === 1); // invert current
+    const nextStateBool = !(autoState === True); // invert current
     sendJSON({ command: "set_auto_state", state: nextStateBool });
     // optimistic UI update will happen when auto_state_response arrives
   }
 });
   
 function updateautoUI() {
-  if (autoState === 0) {
+  if (autoState === False) {
     autoToggleButton.textContent = "MANUAL";
     autoToggleButton.style.backgroundColor = "#f37021";
     autoStateLabel.textContent = "AUTO";
     autoStateLabel.style.backgroundColor = "#51b848";
 	document.getElementById("autoSatateLabelImg").src = "./Automation.png";
-  } else if (autoState === 1) {
+  } else if (autoState === True) {
     autoToggleButton.textContent = "AUTO";
     autoToggleButton.style.backgroundColor = "#51b848";
     autoStateLabel.textContent = "MANUAL";
