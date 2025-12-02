@@ -567,7 +567,16 @@ function parseTimeString(excelTimeStr) {
     now.setHours(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), 0);
     return now;
 }
-
+	
+function parseTimeOnly(excelTimeStr) {
+    const date = new Date(excelTimeStr);
+    if (isNaN(date)) return "⚠ Invalid";
+    // extract hours, minutes, seconds ignoring date and timezone
+    const h = date.getHours().toString().padStart(2,'0');
+    const m = date.getMinutes().toString().padStart(2,'0');
+    const s = date.getSeconds().toString().padStart(2,'0');
+    return `${h}:${m}:${s}`;
+}
 function renderTable(data) {
   currentFilteredData = data;
   const tbody = document.querySelector("#trainTable tbody");
@@ -583,9 +592,9 @@ function renderTable(data) {
 
     // --- DATE + TIME VALIDATION ----
     const ngayDenDate = parseDateString(row["Ngày Đến"]);
-    const gioDenDate = parseTimeString(row["Giờ Đến"]);
+    const gioDenDate = parseTimeOnly(row["Giờ Đến"]);
     const ngayRoiDate = parseDateString(row["Ngày Rời"]);
-    const gioRoiDate = parseTimeString(row["Giờ Rời"]);
+    const gioRoiDate = parseTimeOnly(row["Giờ Rời"]);
 
     // Format OR fallback
     const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
