@@ -560,16 +560,12 @@ function parseDateString(str) {
 }
 
 function parseTimeString(excelTimeStr) {
-    // Nếu dữ liệu kiểu "Sat Dec 30 1899 10:27:40 ..."
-    const d = new Date(excelTimeStr);
-    if (isNaN(d)) return null;
-
-    // Chỉ lấy giờ, phút, giây
-    const hours = d.getHours();
-    const minutes = d.getMinutes();
-    const seconds = d.getSeconds();
-
-    return { hours, minutes, seconds };
+    const date = new Date(excelTimeStr);
+    if (isNaN(date)) return null;
+    
+    const now = new Date();
+    now.setHours(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), 0);
+    return now;
 }
 
 function renderTable(data) {
@@ -592,10 +588,10 @@ function renderTable(data) {
     const gioRoiDate = parseTimeString(row["Giờ Rời"]);
 
     // Format OR fallback
-    const ngayDen = ngayDenDate ? ngayDenDate : "⚠ Invalid";
-    const gioDen = gioDenDate ? gioDenDate : "⚠ Invalid";
-    const ngayRoi = ngayRoiDate ? ngayRoiDate : "⚠ Invalid";
-    const gioRoi = gioRoiDate ? gioRoiDate : "⚠ Invalid";
+    const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
+    const gioDen = gioDenDate ? gioDenDate.toLocaleTimeString("vi-VN") : "⚠ Invalid";
+    const ngayRoi = ngayRoiDate ? ngayRoiDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
+    const gioRoi = gioRoiDate ? gioRoiDate.toLocaleTimeString("vi-VN") : "⚠ Invalid";
 
     if (!ngayDenDate || !gioDenDate || !ngayRoiDate || !gioRoiDate) {
       console.warn("Invalid date or time format in row:", row);
