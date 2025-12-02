@@ -592,9 +592,9 @@ function renderTable(data) {
 
     // --- DATE + TIME VALIDATION ----
     const ngayDenDate = parseDateString(row["Ngày Đến"]);
-    const gioDenDate = parseTimeOnly(row["Giờ Đến"]);
+    const gioDenDate = parseTimeString(row["Giờ Đến"]);
     const ngayRoiDate = parseDateString(row["Ngày Rời"]);
-    const gioRoiDate = parseTimeOnly(row["Giờ Rời"]);
+    const gioRoiDate = parseTimeString(row["Giờ Rời"]);
 
     // Format OR fallback
     const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
