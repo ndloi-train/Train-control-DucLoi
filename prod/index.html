@@ -592,10 +592,10 @@ function renderTable(data) {
     const gioRoiDate = parseTimeString(row["Giờ Rời"]);
 
     // Format OR fallback
-    const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString : "⚠ Invalid";
-    const gioDen = gioDenDate ? gioDenDate.toLocaleTimeString : "⚠ Invalid";
-    const ngayRoi = ngayRoiDate ? ngayRoiDate.toLocaleDateString : "⚠ Invalid";
-    const gioRoi = gioRoiDate ? gioRoiDate.toLocaleTimeString : "⚠ Invalid";
+    const ngayDen = ngayDenDate ? ngayDenDate : "⚠ Invalid";
+    const gioDen = gioDenDate ? gioDenDate : "⚠ Invalid";
+    const ngayRoi = ngayRoiDate ? ngayRoiDate : "⚠ Invalid";
+    const gioRoi = gioRoiDate ? gioRoiDate : "⚠ Invalid";
 
     if (!ngayDenDate || !gioDenDate || !ngayRoiDate || !gioRoiDate) {
       console.warn("Invalid date or time format in row:", row);
