@@ -560,13 +560,16 @@ function parseDateString(str) {
 }
 
 function parseTimeString(excelTimeStr) {
-    const date = new Date(excelTimeStr);
-    if (isNaN(date)) return null;
-    
-    const now = new Date();
-    now.setHours(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), 0);
-    return now;
+    // Split by space and return the part containing HH:MM:SS
+    const parts = excelTimeStr.split(" ");
+    for (const p of parts) {
+        if (/^\d{2}:\d{2}:\d{2}$/.test(p)) {
+            return p;
+        }
+    }
+    return null;
 }
+
 	
 function parseTimeOnly(excelTimeStr) {
     const date = new Date(excelTimeStr);
