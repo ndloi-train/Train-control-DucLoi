@@ -598,9 +598,9 @@ function renderTable(data) {
 
     // Format OR fallback
     const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
-    const gioDen = gioDenDate ? gioDenDate.toLocaleTimeString("vi-VN") : "⚠ Invalid";
+    const gioDen = gioDenDate ? gioDenDate : "⚠ Invalid";
     const ngayRoi = ngayRoiDate ? ngayRoiDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
-    const gioRoi = gioRoiDate ? gioRoiDate.toLocaleTimeString("vi-VN") : "⚠ Invalid";
+    const gioRoi = gioRoiDate ? gioRoiDate : "⚠ Invalid";
 
     if (!ngayDenDate || !gioDenDate || !ngayRoiDate || !gioRoiDate) {
       console.warn("Invalid date or time format in row:", row);
